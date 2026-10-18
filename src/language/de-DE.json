@@ -60,5 +60,18 @@
   "backup-read-error": "Backup konnte nicht überprüft werden - bitte das Modul erneut auslesen, bevor geschrieben wird.",
   "backup-none-found": "Keine passenden Backups gefunden.",
   "api-timeout": "Der Wizard hat nicht geantwortet. Bitte Verbindung prüfen und erneut versuchen.",
-  "repo-fetch-error": "EEPROM-Repository konnte nicht geladen werden. Bitte Internetverbindung prüfen."
+  "repo-fetch-error": "EEPROM-Repository konnte nicht geladen werden. Bitte Internetverbindung prüfen.",
+  "console-path-invalid": "Der Pfad muss mit \"/\" beginnen.",
+  "console-body-invalid": "Der Body ist kein gültiges JSON.",
+  "console-post-title": "POST-Anfrage senden?",
+  "console-post-message": "POST-Anfragen können Daten auf dem Wizard ändern oder löschen, auch gespeicherte Profile. Nur fortfahren, wenn du weißt, was diese Anfrage bewirkt.",
+  "insecure-context": "Bluetooth funktioniert nur über HTTPS oder auf localhost. Bitte die Seite über https:// oder http://localhost statt über eine IP-Adresse öffnen.",
+  "store-download": "Herunterladen",
+  "store-backup": "In Meine Backups speichern",
+  "store-empty": "Der Profilspeicher auf dem Wizard ist leer.",
+  "store-loaded": "{{count}} Profil(e) auf dem Wizard gespeichert.",
+  "store-error": "Profilspeicher konnte nicht gelesen werden. Dafür wird Wizard-Firmware 1.1.8 oder neuer benötigt.",
+  "store-read-error": "Das gespeicherte Profil konnte nicht vom Wizard gelesen werden.",
+  "store-changed": "Der Profilspeicher auf dem Wizard hat sich geändert. Bitte die Liste neu laden.",
+  "backup-save-error": "Das Backup konnte in diesem Browser nicht gespeichert werden."
 }

@@ -10,6 +10,9 @@ import {ProtocolType} from "./ProtocolType";
 import {FormatType} from "./FormatType";
 import {Repository} from "./Repository";
 import {BackupStore} from "./BackupStore";
+import {ApiConsole} from "./ApiConsole";
+import {ProfileStore} from "./ProfileStore";
+import {Eeprom} from "./Eeprom";
 import untar from "js-untar";
 
 
@@ -65,6 +68,9 @@ class Wizard {
     // Store Wizard Mac to Query via Service V2 (Hybrid HTTP API).
     private static deviceId: any;
 
+    // Store the on-device Profile Store view.
+    private static profileStore: ProfileStore;
+
     // Store State of Electron Device Selector.
     private static deviceSelectorOpen = false;
 
@@ -84,6 +90,12 @@ class Wizard {
 
         // Prepare Listeners.
         this.registerListeners();
+
+        // Prepare raw API Console.
+        new ApiConsole((method, path, body, timeoutMs) => Wizard.sendApiRequest(method, path, body, timeoutMs), () => Wizard.handleMAC(Wizard.deviceId));
+
+        // Prepare on-device Profile Store view.
+        Wizard.profileStore = new ProfileStore((method, path, body, timeoutMs) => Wizard.sendApiRequest(method, path, body, timeoutMs), () => Wizard.handleMAC(Wizard.deviceId), () => this.refreshBackupList(Wizard.backupSearch.val() as string));
 
         // Fetch Repository.
         Repository.fetchTemplates();
@@ -116,6 +128,7 @@ class Wizard {
 
             // Clear Fields.
             Wizard.clearFields();
+            Wizard.profileStore?.clear();
         }
 
         console.log(`Set connected state to ${state}`)
@@ -184,7 +197,11 @@ class Wizard {
      * @return {void} This method does not return a value.
      */
     public static scanDevices(): void {
-
+        // Browsers hide Web Bluetooth outside HTTPS/localhost, which looks like missing support.
+        if (!window.isSecureContext) {
+            Wizard.notify(i18next.t("common:insecure-context"), "failure");
+            return;
+        }
 
         if (this.hasBluetoothChannel()) {
             this.isAvailable().then(available => {
@@ -203,12 +220,17 @@ class Wizard {
                         console.log(device);
 
                         // Store Device.
-                        Wizard.setConnectedDevice(device).then(r => {
+                        return Wizard.setConnectedDevice(device).then(r => {
                             // Set Connection State.
                             Wizard.setConnected(true);
 
                             // Disable Loader.
                             this.setLoader(false);
+                        }).catch(error => {
+                            // Drop the half-open connection so the next Connect starts clean.
+                            if (device.gatt?.connected) device.gatt.disconnect();
+
+                            throw error;
                         });
                     }).catch(error => {
                         this.setLoader(false);
@@ -614,21 +636,19 @@ class Wizard {
             this.setConnected(false);
         })
 
-        // Just a dirty hack to get the device mac.
-        await Wizard.sendCommand("getVer", 5000).then(response => {
-            const data = JSON.parse(Wizard.decodeJSON(response))
+        // Get the device MAC, required for every API path.
+        const info = await Wizard.readDeviceInfo();
 
-            // Check if API Response contains Mac ID.
-            if (data.id != undefined) {
-                Wizard.deviceId = data.id;
+        if (info?.id == undefined) {
+            Wizard.notify(i18next.t("common:mac-failed"), "failure");
 
-                // Set Battery Level.
-                this.setText("battery", data.level + "%");
-            } else {
-                Wizard.notify(i18next.t("common:mac-failed"), "failure");
-            }
+            throw new Error("Could not determine device MAC address");
+        }
 
-        });
+        Wizard.deviceId = info.id;
+
+        // Set Battery Level.
+        this.setText("battery", info.level + "%");
 
         // Send Connected Notification.
         Wizard.notify(i18next.t("common:connected"), "success");
@@ -639,6 +659,31 @@ class Wizard {
 
         // Set Device Instance.
         Wizard.device = device;
+    }
+
+    /**
+     * Reads the device info JSON ({id, fwv, level, ...}) from the Info characteristic.
+     * A direct GATT read is tried first (as sfpw-tool does), since the getVer command
+     * does not always get a notify response; getVer is kept as a fallback.
+     *
+     * @return {Promise<any>} The parsed device info, or null if both methods fail.
+     */
+    private static async readDeviceInfo(): Promise<any> {
+        try {
+            const value = await Wizard.infoChar.readValue();
+            const info = JSON.parse(Wizard.decodeJSON(new Uint8Array(value.buffer)));
+
+            if (info.id != undefined) return info;
+        } catch (e) {
+            console.warn("Direct read of device info failed, falling back to getVer.", e);
+        }
+
+        try {
+            return JSON.parse(Wizard.decodeJSON(await Wizard.sendCommand("getVer", 5000)));
+        } catch (e) {
+            console.warn("getVer failed.", e);
+            return null;
+        }
     }
 
     /**
@@ -912,7 +957,8 @@ class Wizard {
                 Wizard.apiResolvers.delete(id);
 
                 try {
-                    this.setLog(JSON.stringify(decoded), false);
+                    // Summarise binary bodies, otherwise every byte is logged as a JSON key.
+                    this.setLog(decoded.body instanceof Uint8Array ? JSON.stringify({header: decoded.header, body: `<${decoded.body.length} bytes binary>`}) : JSON.stringify(decoded), false);
                 } catch {
                 }
 
@@ -1245,7 +1291,7 @@ class Wizard {
         let type = FormatType.json;
         let pos = 4; // skip transport header
 
-        console.error(data);
+        console.debug(data);
 
         // HEADER
         const headerType = data[pos];
@@ -1253,7 +1299,8 @@ class Wizard {
         // Throw error if header type is not 0x03
         //if (headerType !== ProtocolType.TypeHeader) throw new Error(`Expected header type ${ProtocolType.TypeHeader}, got ${headerType} instead`);
 
-        const headerCompressed = data[pos + 2] === 1;
+        // The Wizard sets the flag but often sends raw JSON, so only inflate real zlib data (0x78 magic).
+        const headerCompressed = data[pos + 2] === 1 && data[pos + 9] === 0x78;
         const headerLen = data[pos + 8];
         pos += 9;
 
@@ -1284,7 +1331,7 @@ class Wizard {
         // Throw error if body type is not 0x02
         if (bodyType !== ProtocolType.TypeBody) throw new Error(`Expected body type ${ProtocolType.TypeBody}, got ${bodyType} instead`);
 
-        const bodyCompressed = data[pos + 2] === 1;
+        const bodyCompressed = data[pos + 2] === 1 && data[pos + 8] === 0x78;
         const bodyLen =
             (data[pos + 4] << 24) |
             (data[pos + 5] << 16) |
@@ -1864,15 +1911,7 @@ class Wizard {
      *                  If the data length is less than 96 bytes, returns default values with "-" for all keys.
      */
     private static fetchEEPROM(data: Uint8Array): { vendor: string; sn: string; part: string } {
-        if (data.length < 96) {
-            return {vendor: "-", sn: "-", part: "-"};
-        }
-
-        const vendor = new TextDecoder().decode(data.slice(20, 36)).trim();
-        const pn = new TextDecoder().decode(data.slice(40, 56)).trim();
-        const sn = new TextDecoder().decode(data.slice(68, 84)).trim();
-
-        return {vendor: vendor, sn: sn, part: pn};
+        return Eeprom.identity(data);
     }
 
     /**

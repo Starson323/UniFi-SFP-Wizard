@@ -178,6 +178,40 @@ The tool connects to your SFP Wizard using the Web Bluetooth API.">
                         <br>
                         <div class="card">
                             <div class="card-body">
+                                <!-- Start: Profile Store -->
+                                <div id="wizard-profile-store">
+                                    <h5 class="card-title">Profile Store</h5>
+                                    <p class="card-text">Profiles saved on the Wizard itself (firmware 1.1.8+).</p>
+
+                                    <div class="btn-group needConnected mb-3">
+                                        <button type="button" id="store-load" disabled class="btn btn-primary">Load
+                                            Profiles
+                                        </button>
+                                    </div>
+
+                                    <p class="small" id="store-status"></p>
+
+                                    <div class="table-responsive">
+                                        <table class="table table-sm align-middle" id="store-table">
+                                            <thead>
+                                            <tr>
+                                                <th>Type</th>
+                                                <th>Part Number</th>
+                                                <th>Serial</th>
+                                                <th>Size</th>
+                                                <th></th>
+                                            </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <!-- End: Profile Store -->
+                            </div>
+                        </div>
+                        <br>
+                        <div class="card">
+                            <div class="card-body">
                                 <!-- Start: Wizard Log -->
                                 <div id="wizard-log">
                                     <h5 class="card-title">Wizard Log</h5>
@@ -193,6 +227,51 @@ The tool connects to your SFP Wizard using the Web Bluetooth API.">
                                     </div>
                                 </div>
                                 <!-- End: Wizard Log -->
+                            </div>
+                        </div>
+                        <br>
+                        <div class="card">
+                            <div class="card-body">
+                                <!-- Start: API Console -->
+                                <div id="wizard-api-console">
+                                    <h5 class="card-title">API Console (Advanced)</h5>
+                                    <p class="card-text">Send raw requests to the Wizard. Paths are relative to
+                                        <code>/api/1.0/{mac}</code> unless they start with <code>/api/</code>.
+                                        Presets are read-only; POST requests can change or erase data.</p>
+
+                                    <div class="mb-3">
+                                        <label for="api-console-preset" class="form-label">Preset</label>
+                                        <select class="form-select" id="api-console-preset">
+                                            <option selected disabled>Select a preset</option>
+                                        </select>
+                                    </div>
+                                    <div class="input-group mb-3">
+                                        <select class="form-select" id="api-console-method" style="max-width: 7rem;">
+                                            <option value="GET" selected>GET</option>
+                                            <option value="POST">POST</option>
+                                        </select>
+                                        <input type="text" class="form-control" id="api-console-path"
+                                               placeholder="/xsfp/favorites/start" spellcheck="false">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="api-console-body" class="form-label">Body (JSON)</label>
+                                        <textarea class="form-control font-monospace" id="api-console-body" rows="2"
+                                                  spellcheck="false">{}</textarea>
+                                    </div>
+
+                                    <div class="btn-group needConnected mb-3">
+                                        <button type="button" id="api-console-send" disabled class="btn btn-primary">Send
+                                        </button>
+                                        <button type="button" id="api-console-download"
+                                                class="btn btn-secondary ignoreConnect">Download Session
+                                            (<span id="api-console-count">0</span>)
+                                        </button>
+                                    </div>
+
+                                    <pre id="api-console-output" class="font-monospace small"
+                                         style="max-height: 24rem; overflow: auto; white-space: pre;"></pre>
+                                </div>
+                                <!-- End: API Console -->
                             </div>
                         </div>
                         <br>
