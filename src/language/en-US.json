@@ -60,5 +60,18 @@
   "backup-read-error": "Unable to verify a backup exists - please read the module again before writing.",
   "backup-none-found": "No matching backups found.",
   "api-timeout": "The Wizard did not respond. Check the connection and try again.",
-  "repo-fetch-error": "Unable to load the EEPROM Repository. Check your internet connection."
+  "repo-fetch-error": "Unable to load the EEPROM Repository. Check your internet connection.",
+  "console-path-invalid": "The path must start with \"/\".",
+  "console-body-invalid": "The body is not valid JSON.",
+  "console-post-title": "Send POST request?",
+  "console-post-message": "POST requests can change or erase data on the Wizard, including stored profiles. Only continue if you know what this request does.",
+  "insecure-context": "Bluetooth only works over HTTPS or on localhost. Open this page via https:// or http://localhost instead of an IP address.",
+  "store-download": "Download",
+  "store-backup": "Save to My Backups",
+  "store-empty": "The Profile Store on the Wizard is empty.",
+  "store-loaded": "{{count}} profile(s) stored on the Wizard.",
+  "store-error": "Unable to read the Profile Store. It needs Wizard firmware 1.1.8 or newer.",
+  "store-read-error": "Unable to read the stored profile from the Wizard.",
+  "store-changed": "The Profile Store changed on the Wizard. Please load the list again.",
+  "backup-save-error": "Unable to save the backup in this browser."
 }

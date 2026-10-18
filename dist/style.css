@@ -263,6 +263,12 @@ input[disabled], select[disabled] {
     line-height: 0.5rem;
 }
 
+/* The compact line height above overlaps wrapped text. */
+#wizard-api-console p,
+#wizard-profile-store p {
+    line-height: 1.5;
+}
+
 .log {
     background-color: rgb(19, 20, 22);
     border-radius: 0.45rem;
