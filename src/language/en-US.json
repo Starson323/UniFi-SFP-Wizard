@@ -58,5 +58,7 @@
   "backup-required-message": "No local backup found for this module's serial number. Please click \"Save\" first to back it up before writing.",
   "backup-saved-message": "Module EEPROM backed up locally on this device.",
   "backup-read-error": "Unable to verify a backup exists - please read the module again before writing.",
-  "backup-none-found": "No matching backups found."
+  "backup-none-found": "No matching backups found.",
+  "api-timeout": "The Wizard did not respond. Check the connection and try again.",
+  "repo-fetch-error": "Unable to load the EEPROM Repository. Check your internet connection."
 }

@@ -310,8 +310,7 @@ class Wizard {
             }
 
             try {
-                const url = `https://raw.githubusercontent.com/posi211/UniFi-SFP-Wizard/master/repository/${filename}`;
-                const response = await fetch(url);
+                const response = await fetch(Repository.fileUrl(filename));
 
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}`);
@@ -1324,8 +1323,10 @@ class Wizard {
      *
      * @param {"GET" | "POST"} method - The HTTP method to use for the request.
      * @param bodyObj
-     * @param {string} path*/
-    private static async sendApiRequest(method: "GET" | "POST", path: string, bodyObj: any = {}) {
+     * @param {string} path
+     * @param {number} [timeoutMs=10000] - Time to wait for a response before rejecting.
+     */
+    private static async sendApiRequest(method: "GET" | "POST", path: string, bodyObj: any = {}, timeoutMs: number = 10000) {
         console.log(`Sending API Request: ${method} ${path}`);
 
         const [id, seq] = Wizard.nextRequestId();
@@ -1346,14 +1347,57 @@ class Wizard {
         const packet = Wizard.binmeEncode(headerJson, bodyJson, seq);
 
         // Return Promise for Callback.
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             // Resolver registration.
-            Wizard.apiResolvers.set(id, resolve);
+            Wizard.registerApiResolver(id, path, resolve, reject, timeoutMs);
 
             // Send Packet.
             // @ts-ignore
             Wizard.writeChar.writeValue(packet);
         });
+    }
+
+    /**
+     * Registers a resolver for an API request and rejects it if no response arrives in time.
+     * On timeout, any partially reassembled packet is discarded so the next response starts clean.
+     *
+     * @param {string} id - The request ID the response header will carry.
+     * @param {string} path - The request path, used for the error message.
+     * @param resolve - Called with the decoded response.
+     * @param reject - Called with an Error on timeout.
+     * @param {number} timeoutMs - Time to wait for a response.
+     * @return {void} This method does not return a value.
+     */
+    private static registerApiResolver(id: string, path: string, resolve: (data: any) => void, reject: (reason: Error) => void, timeoutMs: number): void {
+        Wizard.apiResolvers.set(id, resolve);
+
+        setTimeout(() => {
+            if (Wizard.apiResolvers.has(id)) {
+                Wizard.apiResolvers.delete(id);
+
+                // Drop half-received Frames, otherwise every following Response is misparsed.
+                Wizard.apiRx = {expectedLen: 0, buffer: new Uint8Array(0)};
+
+                Wizard.notify(i18next.t("common:api-timeout"), "failure");
+
+                reject(new Error(`Timeout waiting for response to ${path} (${id})`));
+            }
+        }, timeoutMs);
+    }
+
+    /**
+     * Escapes a string for safe insertion into HTML. Device and EEPROM strings are untrusted.
+     *
+     * @param {string} s - The string to escape.
+     * @return {string} The escaped string.
+     */
+    private static escapeHtml(s: string): string {
+        return String(s)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
     }
 
     /**
@@ -1573,7 +1617,7 @@ class Wizard {
                     console.log(`Received size: ${data.size} and chunk: ${data.chunk}.`);
 
                     // Get Data from Device.
-                    await this.startStreamProcess(0, (data.size = 0 ? 512 : data.size)).then(async (r) => {
+                    await this.startStreamProcess(0, (data.size == 0 ? 512 : data.size)).then(async (r) => {
                         // Download SFP File to Device.
                         this.downloadStream(r);
 
@@ -1652,7 +1696,7 @@ class Wizard {
      * @return {void} This method does not return a value.
      */
     private static setLog(s: string, legacy: boolean) {
-        $("#log-container").append(`<div title="${legacy ? i18next.t("common:api-legacy") : i18next.t("common:api-new")}" class="log"><a>${this.formatTimeHHMMSS()} - </a><code>${s}</code></div>`);
+        $("#log-container").append(`<div title="${legacy ? i18next.t("common:api-legacy") : i18next.t("common:api-new")}" class="log"><a>${this.formatTimeHHMMSS()} - </a><code>${this.escapeHtml(s)}</code></div>`);
 
         if (this.hasAutoscroll()) {
             Wizard.scrollLogToBottom();
@@ -1885,7 +1929,7 @@ class Wizard {
             records.forEach(r => {
                 const date = new Date(r.savedAt).toLocaleString();
                 const label = `${r.partNumber} — ${r.sn} (${r.vendor}, saved ${date})`;
-                Wizard.backupSelect.append(`<option value="${r.id}">${label}</option>`);
+                Wizard.backupSelect.append($("<option>").val(String(r.id)).text(label));
             });
         } catch (e) {
             console.warn("Failed to load local backup library.", e);
@@ -1948,15 +1992,7 @@ class Wizard {
 
         // Register resolver BEFORE sending
         const promise = new Promise((resolve, reject) => {
-            Wizard.apiResolvers.set(id, resolve);
-
-            // Timeout handling
-            setTimeout(() => {
-                if (Wizard.apiResolvers.has(id)) {
-                    Wizard.apiResolvers.delete(id);
-                    reject(new Error(`Timeout waiting for response to request ${id}`));
-                }
-            }, timeoutMs);
+            Wizard.registerApiResolver(id, path, resolve, reject, timeoutMs);
         });
 
         // BLE fragmentation
@@ -2068,27 +2104,27 @@ class Wizard {
                     let chunk = Math.min(remaining, body.chunk);
 
                     // Start Data Chunk Stream.
-                    await Wizard.sendApiRequest("GET", `/api/1.0/${Wizard.handleMAC(Wizard.deviceId)}/sif/data`, {
+                    const data: any = await Wizard.sendApiRequest("GET", `/api/1.0/${Wizard.handleMAC(Wizard.deviceId)}/sif/data`, {
                         status: "continue",
                         offset: offset,
                         chunk: chunk
-                    }).then((data) => {
-                        // @ts-ignore
-                        if (data.type == FormatType.binary && data.body != undefined) {
-                            console.log(`Received Data ${offset} of ${body.size}.`);
-
-                            // Push Chunk into Buffer.
-                            // @ts-ignore
-                            tarChunks.push(data.body);
-
-                            // Increment Offset.
-                            // @ts-ignore
-                            offset += data.body.byteLength;
-                        } else {
-                            // @ts-ignore
-                            console.error(`Invalid response from wizard. ${data.type} ${data.body}`);
-                        }
                     });
+
+                    // Stop on an invalid or empty Chunk, otherwise the Offset never advances.
+                    if (data.type != FormatType.binary || data.body == undefined || data.body.byteLength == 0) {
+                        console.error(`Invalid response from wizard. ${data.type} ${data.body}`);
+
+                        Wizard.notify(i18next.t("common:sif-error-start"), "failure");
+                        return;
+                    }
+
+                    console.log(`Received Data ${offset} of ${body.size}.`);
+
+                    // Push Chunk into Buffer.
+                    tarChunks.push(data.body);
+
+                    // Increment Offset.
+                    offset += data.body.byteLength;
                 }
 
                 // Combine Chunks.
@@ -2231,7 +2267,7 @@ class Wizard {
                 if ($("#electron-device-selector").children(`option[value="${v.deviceId}"]`).length === 0) {
                     console.log(`New Device found: ${v.deviceName} (${v.deviceId})`);
 
-                    $("#electron-device-selector").append(`<option value="${v.deviceId}">${v.deviceName}</option>`);
+                    $("#electron-device-selector").append($("<option>").val(v.deviceId).text(v.deviceName));
                 }
             }
         });

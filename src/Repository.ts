@@ -1,69 +1,52 @@
 import $ from "jquery";
+import i18next from "i18next";
+import {Notify} from "notiflix";
 
 export class Repository {
-    // Store Base URL.
-    private static baseUrl = "https://api.github.com/repos/Gamer08YT/UniFi-SFP-Wizard/"
-
-    // Store count of Templates to load.
-    private static needToLoad = 0;
+    // Store the GitHub Repository serving the EEPROM Profiles (dumps.json and *.uieeprom).
+    private static owner = "Starson323";
+    private static repo = "UniFi-SFP-Wizard";
+    private static branch = "master";
 
     /**
-     * Fetches templates from a specified repository and processes the data.
-     * This method makes a GET request to retrieve file listings from the repository,
-     * counts JSON files that need to be loaded, and appends options to a select element
-     * for files with a specific extension.
+     * Builds the raw.githubusercontent.com URL of a file inside the repository folder.
+     * raw.githubusercontent.com is not subject to the 60 requests/hour limit of api.github.com.
+     *
+     * @param {string} filename - The file name inside the repository folder.
+     * @return {string} The absolute URL of the file.
+     */
+    public static fileUrl(filename: string): string {
+        return `https://raw.githubusercontent.com/${this.owner}/${this.repo}/${this.branch}/repository/${encodeURIComponent(filename)}`;
+    }
+
+    /**
+     * Fetches dumps.json from the repository and appends one option per entry to the
+     * EEPROM Repository select. Shows a visible error if the fetch fails.
      *
      * @return {void} Does not return a value.
      */
     public static fetchTemplates() {
-        const url = this.baseUrl + "contents/repository";
+        $.getJSON(this.fileUrl("dumps.json"), (data) => {
+            // Remove the static placeholder options (e.g. "Todo") that ship in the
+            // markup, keeping only the leading "Select EEPROM Config" prompt.
+            $("#sfp-repo option[value]").remove();
 
-        $.get(url, (data) => {
-            const nameByFile: { [key: string]: string } = {};
+            if (data && Array.isArray(data.dumps)) {
+                data.dumps.forEach((dump: { file: string, name: string }) => {
+                    if (dump.file && dump.file.endsWith(".uieeprom")) {
+                        const label = dump.name || dump.file.replace(".uieeprom", "");
 
-            // @ts-ignore
-            const dumpsEntry = data.find(element => element.name === "dumps.json");
-
-            const populateOptions = () => {
-                // Remove the static placeholder options (e.g. "Todo") that ship in the
-                // markup, keeping only the leading "Select EEPROM Config" prompt.
-                $("#sfp-repo option[value]").remove();
-
-                // @ts-ignore
-                data.forEach(element => {
-                    if (element.name.endsWith(".uieeprom")) {
-                        const label = nameByFile[element.name] || element.name.replace(".uieeprom", "");
-                        $("#sfp-repo").append(`<option value="${element.name}">${label}</option>`)
+                        // Build via .val()/.text() so names from dumps.json can't inject HTML.
+                        $("#sfp-repo").append($("<option>").val(dump.file).text(label));
                     }
-                })
-
-                console.log("Fetched Templates.");
-            };
-
-            if (dumpsEntry) {
-                $.get(dumpsEntry.download_url, (dumpsData) => {
-                    try {
-                        const parsed = typeof dumpsData === "string" ? JSON.parse(dumpsData) : dumpsData;
-
-                        if (parsed && Array.isArray(parsed.dumps)) {
-                            parsed.dumps.forEach((dump: { file: string, name: string }) => {
-                                if (dump.file && dump.name) {
-                                    nameByFile[dump.file] = dump.name;
-                                }
-                            });
-                        }
-                    } catch (e) {
-                        console.warn("Failed to parse dumps.json, falling back to filenames.", e);
-                    }
-
-                    populateOptions();
-                }).fail(() => {
-                    console.warn("Failed to fetch dumps.json, falling back to filenames.");
-                    populateOptions();
                 });
-            } else {
-                populateOptions();
             }
+
+            console.log("Fetched Templates.");
+        }).fail(() => {
+            console.warn("Failed to fetch dumps.json.");
+
+            Notify.failure(i18next.t("common:repo-fetch-error"));
         });
     }
 }
