@@ -1,4 +1,4 @@
-# Firmware 1.1.8 — Profile Store and Restore APIs
+# Firmware 1.1.8: Profile Store and Restore APIs
 
 Notes from comparing the strings in the official v1.1.3 and v1.1.8 firmware images. Request and
 response layouts below are **inferred** from log messages and format strings, not confirmed on a

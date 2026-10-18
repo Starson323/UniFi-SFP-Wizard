@@ -1967,7 +1967,7 @@ class Wizard {
 
             records.forEach(r => {
                 const date = new Date(r.savedAt).toLocaleString();
-                const label = `${r.partNumber} — ${r.sn} (${r.vendor}, saved ${date})`;
+                const label = `${r.partNumber} - ${r.sn} (${r.vendor}, saved ${date})`;
                 Wizard.backupSelect.append($("<option>").val(String(r.id)).text(label));
             });
         } catch (e) {
