@@ -58,5 +58,7 @@
   "backup-required-message": "Für die Seriennummer dieses Moduls wurde kein lokales Backup gefunden. Bitte zuerst auf \"Speichern\" klicken, um ein Backup zu erstellen.",
   "backup-saved-message": "Modul-EEPROM wurde lokal auf diesem Gerät gesichert.",
   "backup-read-error": "Backup konnte nicht überprüft werden - bitte das Modul erneut auslesen, bevor geschrieben wird.",
-  "backup-none-found": "Keine passenden Backups gefunden."
+  "backup-none-found": "Keine passenden Backups gefunden.",
+  "api-timeout": "Der Wizard hat nicht geantwortet. Bitte Verbindung prüfen und erneut versuchen.",
+  "repo-fetch-error": "EEPROM-Repository konnte nicht geladen werden. Bitte Internetverbindung prüfen."
 }
