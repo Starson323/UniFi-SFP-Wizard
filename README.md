@@ -7,7 +7,7 @@ the profiles stored on the Wizard itself.
 This is a fork of [Gamer08YT/UniFi-SFP-Wizard](https://github.com/Gamer08YT/UniFi-SFP-Wizard),
 focused on Wizard firmware 1.1.8 and newer.
 
-![Dashboard](/assets/img/dashboard.png)
+![Dashboard](/assets/img/localhost.png)
 
 ## Use it
 
