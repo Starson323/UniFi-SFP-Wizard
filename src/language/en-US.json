@@ -18,7 +18,7 @@
   "reboot": "Reboot",
   "reboot-title": "Reboot",
   "reboot-message": "Are you sure you want to reboot the device?",
-  "info": "Welcome to this Tool, you need to connect to the device via bluetooth first.",
+  "info": "Connect your SFP Wizard over Bluetooth to get started.",
   "affiliate": "This site is not affiliated with Ubiquiti in any way.",
   "name": "Name",
   "serial": "Serial",
@@ -54,7 +54,7 @@
   "sif-start": "Log file was created and will be downloaded now from the Wizard.",
   "sif-finish": "Log file was successfully downloaded.",
   "device-select": "Select device",
-  "module-meta-description": "Click on <b>Read SFP</b> to read the Metadata from the Module.",
+  "module-meta-description": "Insert a module and click <b>Read</b> to show its details.",
   "backup-required-message": "No local backup found for this module's serial number. Please click \"Save\" first to back it up before writing.",
   "backup-saved-message": "Module EEPROM backed up locally on this device.",
   "backup-read-error": "Unable to verify a backup exists - please read the module again before writing.",
@@ -87,5 +87,7 @@
   "builder-warn-vendor-data": "The template has vendor-specific data (bytes 96-127) that may encode its original identity. Some switches, Cisco in particular, check it and may reject a changed vendor, part or serial number.",
   "builder-warn-diagnostics": "The template has diagnostics (DDM) with alarm thresholds for its original type. They are kept unchanged, so readings may show false alarms.",
   "builder-info-blank": "A blank profile has no vendor-specific data and no diagnostics (DDM). Switches that check vendor data will need a template from a genuine module.",
-  "builder-help-keep": "Keeps the speed, media and reach bytes exactly as they are in the template."
+  "builder-help-keep": "Keeps the speed, media and reach bytes exactly as they are in the template.",
+  "status-connected": "Connected",
+  "status-disconnected": "Not connected"
 }

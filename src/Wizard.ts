@@ -111,6 +111,9 @@ class Wizard {
             $("#sfp-builder-selected").text(label);
             (Wizard.sourceBuilderRadio[0] as HTMLInputElement).checked = true;
             Wizard.sourceBuilderRadio.trigger("change");
+
+            // Show the Module tab, where the Write button is.
+            ($("[data-bs-target=\"#tab-module\"]")[0] as HTMLElement | undefined)?.click();
         });
 
         // Fetch Repository.
@@ -120,20 +123,21 @@ class Wizard {
     /**
      * Updates the connection button text and style based on the connection state.
      *
-     * @param {boolean} state - The connection state. If true, sets the button text to "Disconnect"
-     * and applies a danger styling. If false, sets the button text to "Connect" and removes the danger styling.
+     * @param {boolean} state - The connection state. Updates the Connect/Disconnect button, the status
+     * bar and the connect hint.
      * @return {void} This method does not return any value.
      */
     private static setConnected(state: boolean) {
         Wizard.connectButton.text(state ? i18next.t("common:disconnect") : i18next.t("common:connect"));
 
-        if (state) {
-            Wizard.connectButton.addClass("btn-danger");
-            Wizard.connectButton.removeClass("btn-primary");
-        } else {
-            Wizard.connectButton.removeClass("btn-danger");
-            Wizard.connectButton.addClass("btn-primary");
-        }
+        // Connect is the main call to action; once connected, Disconnect steps back.
+        Wizard.connectButton.toggleClass("btn-primary", !state).toggleClass("btn-outline-secondary", state);
+
+        // Update the status bar and hide the connect hint while connected.
+        $("#status-dot").toggleClass("online", state);
+        $("#status-text").text(state ? i18next.t("common:status-connected") : i18next.t("common:status-disconnected"));
+        $("#status-detail").prop("hidden", !state);
+        $("#connect-hint").toggle(!state);
 
         // Enable or Disable Controls.
         Wizard.setControls(state);
@@ -629,11 +633,6 @@ class Wizard {
         Wizard.builderGroup = $("#sfp-builder-group");
         Wizard.backupSearch = $("#backup-search");
         Wizard.backupSelect = $("#sfp-backup");
-
-        // Load new Theme if Classic Param is not set.
-        if (!Wizard.shouldUseClassicTheme()) {
-            Wizard.ensureThemeStylesheetLoaded("./style.css");
-        }
     }
 
     /**
@@ -1503,7 +1502,8 @@ class Wizard {
      * @return {void} This method does not return a value.
      */
     private static setText(name: string, value: string): void {
-        $("#device-" + name).text(value);
+        // The status bar shows some of the same values via data-device attributes.
+        $("#device-" + name + ", [data-device=\"" + name + "\"]").text(value);
     }
 
     /**
@@ -2397,36 +2397,6 @@ class Wizard {
                 messageMaxLength: 99999
             });
         }
-    }
-
-    /**
-     * Ensures that a theme stylesheet is loaded into the document. If the stylesheet with the specified `href` is not already present, it creates a new link element and appends it to the document head.
-     *
-     * @param {string} href - The URL of the stylesheet to load.
-     * @return {void}
-     */
-    private static ensureThemeStylesheetLoaded(href: string): void {
-        if (document.querySelector(`link[rel="stylesheet"][href="${href}"]`)) return;
-
-        const link = document.createElement("link");
-        link.rel = "stylesheet";
-        link.href = href;
-        document.head.appendChild(link);
-    }
-
-
-    /**
-     * Determines if the classic theme should be used based on the query parameter "classic" in the provided search string.
-     *
-     * @param {string} [search=window.location.search] - The search string to parse query parameters from. Defaults to the current window's location search string.
-     * @return {boolean} Returns true if the "classic" query parameter exists*/
-    private static shouldUseClassicTheme(search: string = window.location.search): boolean {
-        const params = new URLSearchParams(search);
-
-        if (!params.has("classic")) return false;
-
-        const v = (params.get("classic") ?? "").trim().toLowerCase();
-        return v === "" || v === "1" || v === "true" || v === "yes" || v === "on";
     }
 
     private static notify(text: string, type: string) {
