@@ -8,6 +8,19 @@ export class Repository {
     private static repo = "UniFi-SFP-Wizard";
     private static branch = "master";
 
+    // Store the loaded dumps.json entries, for other views that list profiles (e.g. the SFP Builder).
+    public static entries: { file: string, name: string }[] = [];
+    private static listeners: (() => void)[] = [];
+
+    /**
+     * Registers a callback that runs once the profile list has loaded.
+     *
+     * @param callback - Called after dumps.json has been fetched and parsed.
+     */
+    public static onLoaded(callback: () => void): void {
+        this.listeners.push(callback);
+    }
+
     /**
      * Builds the raw.githubusercontent.com URL of a file inside the repository folder.
      * raw.githubusercontent.com is not subject to the 60 requests/hour limit of api.github.com.
@@ -38,11 +51,14 @@ export class Repository {
 
                         // Build via .val()/.text() so names from dumps.json can't inject HTML.
                         $("#sfp-repo").append($("<option>").val(dump.file).text(label));
+                        this.entries.push({file: dump.file, name: label});
                     }
                 });
             }
 
             console.log("Fetched Templates.");
+
+            this.listeners.forEach(listener => listener());
         }).fail(() => {
             console.warn("Failed to fetch dumps.json.");
 

@@ -5,6 +5,23 @@ All notable changes to this fork (`Starson323/UniFi-SFP-Wizard`) are documented 
 This version number tracks the **web app**, not the physical Wizard device's own firmware
 version. They are separate and only coincidentally similar-looking right now.
 
+## [1.4.0] - 2026-10-19
+
+### Added
+
+- **SFP Builder**: build SFP, SFP+ and SFP28 profiles from a blank profile or a template
+  (Repository, My Backups or a file). Choose a module type (1G SX/LX/copper, 10G SR/LR/ER/copper/
+  DAC, 25G SR/LR), each with a plain description, set the vendor, OUI, part number, revision,
+  serial and date code, and download the result or use it as a new "SFP Builder" write source.
+  Checksums are recalculated and the builder warns about vendor-specific data and diagnostics
+  that may not match. Type presets were checked against the genuine module dumps in
+  `/repository`.
+
+### Removed
+
+- German translation, as it cannot be maintained in this fork. The app is English only.
+- "Unofficial Community" footer link.
+
 ## [1.3.0] - 2026-10-19
 
 ### Added

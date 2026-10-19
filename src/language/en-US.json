@@ -73,5 +73,19 @@
   "store-error": "Unable to read the Profile Store. It needs Wizard firmware 1.1.8 or newer.",
   "store-read-error": "Unable to read the stored profile from the Wizard.",
   "store-changed": "The Profile Store changed on the Wizard. Please load the list again.",
-  "backup-save-error": "Unable to save the backup in this browser."
+  "backup-save-error": "Unable to save the backup in this browser.",
+  "builder-blank": "Blank profile",
+  "builder-group-repo": "Repository",
+  "builder-group-backups": "My Backups",
+  "builder-template-error": "Unable to load the template.",
+  "builder-sfp-only": "The SFP Builder supports SFP, SFP+ and SFP28 profiles (512 bytes) only.",
+  "builder-used": "Profile selected as the write source under Module Flash.",
+  "builder-error-vendor": "Enter a vendor name.",
+  "builder-error-part": "Enter a part number.",
+  "builder-error-ascii": "Text fields can only contain plain ASCII characters.",
+  "builder-error-oui": "The OUI must be 3 bytes in hex, e.g. 00:90:65.",
+  "builder-warn-vendor-data": "The template has vendor-specific data (bytes 96-127) that may encode its original identity. Some switches, Cisco in particular, check it and may reject a changed vendor, part or serial number.",
+  "builder-warn-diagnostics": "The template has diagnostics (DDM) with alarm thresholds for its original type. They are kept unchanged, so readings may show false alarms.",
+  "builder-info-blank": "A blank profile has no vendor-specific data and no diagnostics (DDM). Switches that check vendor data will need a template from a genuine module.",
+  "builder-help-keep": "Keeps the speed, media and reach bytes exactly as they are in the template."
 }

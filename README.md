@@ -42,6 +42,7 @@ The app uses the Web Bluetooth API, which means:
   - **Local File:** a `.uieeprom` file from your computer
   - **Repository:** community profiles from the [`repository`](repository) folder
   - **My Backups:** any module previously saved in this browser
+  - **SFP Builder:** a profile you built in the app (see below)
 - Writing requires a backup of the inserted module first (see below)
 
 ### Profile Store (firmware 1.1.8+)
@@ -54,6 +55,32 @@ Wizard's screen). The app can:
 - Copy a stored profile into My Backups
 
 Uploading and deleting stored profiles from the app is in progress.
+
+### SFP Builder
+
+Build an SFP, SFP+ or SFP28 profile without needing a dump of the exact module. Works without
+a Wizard connected.
+
+1. **Start from** a blank profile, a Repository profile, one of My Backups, or a file.
+2. **Pick a module type:**
+   - 1G: SX, LX, copper RJ45 (1000BASE-T)
+   - 10G: SR, LR, ER, copper RJ45 (10GBASE-T), DAC cable
+   - 25G: SR, LR
+
+   Each type shows what it is: fibre or cable, connector and reach.
+3. **Set the identity:** vendor name, OUI, part number, revision, serial number (or generate one)
+   and date code.
+4. **Download** the `.uieeprom`, or click **Use for Write** to flash it.
+
+Checksums are recalculated automatically, and bytes the form does not cover are kept from the
+template.
+
+**Vendor checks:** some switches, Cisco in particular, verify vendor-specific data (bytes 96-127)
+that cannot be built from scratch. For those, start from a dump of a genuine module. The builder
+warns when a template's vendor data may no longer match the identity you set. A blank profile
+has no diagnostics (DDM), so the switch shows no optical power readings.
+
+QSFP profiles are not supported by the builder yet.
 
 ### API Console (advanced)
 

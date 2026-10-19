@@ -1,6 +1,7 @@
 import $ from "jquery";
 import i18next from "i18next";
 import {Confirm, Notify} from "notiflix";
+import {Eeprom} from "./Eeprom";
 
 /**
  * Sends an API request to the Wizard and resolves with the decoded {header, body, type} response.
@@ -148,29 +149,12 @@ export class ApiConsole {
         const lines = [`${method} ${path}`, JSON.stringify(request), "", "Header:", JSON.stringify(response.header, null, 2), ""];
 
         if (response.body instanceof Uint8Array) {
-            lines.push(`Body (binary, ${response.body.length} bytes):`, ApiConsole.hexDump(response.body));
+            lines.push(`Body (binary, ${response.body.length} bytes):`, Eeprom.hexDump(response.body));
         } else {
             lines.push("Body:", JSON.stringify(response.body, null, 2));
         }
 
         return lines.join("\n");
-    }
-
-    /**
-     * Renders bytes as a classic 16-bytes-per-row hex dump with an ASCII column.
-     */
-    private static hexDump(data: Uint8Array): string {
-        const rows: string[] = [];
-
-        for (let offset = 0; offset < data.length; offset += 16) {
-            const row = data.slice(offset, offset + 16);
-            const hex = Array.from(row).map(b => b.toString(16).padStart(2, "0")).join(" ");
-            const ascii = Array.from(row).map(b => (b >= 0x20 && b < 0x7f) ? String.fromCharCode(b) : ".").join("");
-
-            rows.push(`${offset.toString(16).padStart(4, "0")}  ${hex.padEnd(47)}  ${ascii}`);
-        }
-
-        return rows.join("\n");
     }
 
     private static toHex(data: Uint8Array): string {
