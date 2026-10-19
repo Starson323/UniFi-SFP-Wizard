@@ -68,6 +68,9 @@ class Wizard {
     private static device: BluetoothDevice;
 
     private static pendingResolver: ((data: Uint8Array) => void) | null = null;
+
+    // Web Bluetooth allows one GATT operation at a time, so every write goes through this queue.
+    private static gattQueue: Promise<void> = Promise.resolve();
     private static apiResolvers: Map<string, (data: any) => void> = new Map();
     private static service: BluetoothRemoteGATTService;
     private static requestCounter = 0;
@@ -866,7 +869,10 @@ class Wizard {
             Wizard.pendingResolver = resolve;
 
             // Write command to the Info characteristic.
-            Wizard.infoChar!.writeValueWithoutResponse(data);
+            Wizard.enqueueWrite(() => Wizard.infoChar!.writeValueWithoutResponse(data)).catch(error => {
+                Wizard.pendingResolver = null;
+                reject(error);
+            });
 
             // Timeout Resolver.
             setTimeout(() => {
@@ -893,7 +899,7 @@ class Wizard {
         const data = encoder.encode(command);
 
         // Write command to the Info characteristic
-        await Wizard.infoChar.writeValueWithoutResponse(data);
+        await Wizard.enqueueWrite(() => Wizard.infoChar.writeValueWithoutResponse(data));
 
         // Print Data Length.
         this.printDataLength(data);
@@ -1433,9 +1439,28 @@ class Wizard {
             Wizard.registerApiResolver(id, path, resolve, reject, timeoutMs);
 
             // Send Packet.
-            // @ts-ignore
-            Wizard.writeChar.writeValue(packet);
+            Wizard.enqueueWrite(() => Wizard.writeChar.writeValue(packet as Uint8Array<ArrayBuffer>)).catch(error => {
+                Wizard.apiResolvers.delete(id);
+                reject(error);
+            });
         });
+    }
+
+    /**
+     * Runs a GATT write after every write queued before it has finished. Without this, overlapping
+     * requests (e.g. live diagnostics polling during a log download) fail with "GATT operation
+     * already in progress", and fragments of two packets could interleave.
+     *
+     * @param write - The write to perform.
+     * @return {Promise<void>} Resolves or rejects with the write itself.
+     */
+    private static enqueueWrite(write: () => Promise<void>): Promise<void> {
+        const result = Wizard.gattQueue.then(write);
+
+        // Keep the queue going even if this write fails.
+        Wizard.gattQueue = result.catch(() => undefined);
+
+        return result;
     }
 
     /**
@@ -2079,42 +2104,49 @@ class Wizard {
         // BLE fragmentation
         const bleMTU = 244;
 
-        // Send Chunks.
-        for (let offset = 0; offset < packet.length; offset += bleMTU) {
-            const end = Math.min(offset + bleMTU, packet.length);
-            const chunk = packet.slice(offset, end);
+        // Send all fragments as one queued write, so another request cannot interleave with them.
+        try {
+            await Wizard.enqueueWrite(async () => {
+                for (let offset = 0; offset < packet.length; offset += bleMTU) {
+                    const end = Math.min(offset + bleMTU, packet.length);
+                    const chunk = packet.slice(offset, end);
 
-            console.log(`Writing BLE fragment ${offset}-${end} (${chunk.length} bytes)`);
+                    console.log(`Writing BLE fragment ${offset}-${end} (${chunk.length} bytes)`);
 
-            const maxRetries = 5;
-            let lastErr: any = null;
+                    const maxRetries = 5;
+                    let lastErr: any = null;
 
-            for (let attempt = 0; attempt <= maxRetries; attempt++) {
-                try {
-                    // Web Bluetooth writeWithoutResponse
-                    // @ts-ignore
-                    await Wizard.writeChar.writeValueWithoutResponse(chunk);
-                    lastErr = null;
-                    break;
-                } catch (err) {
-                    lastErr = err;
-                    if (attempt < maxRetries) {
-                        const backoff = 20 * (1 << attempt); // 20, 40, 80, 160, 320ms
-                        console.warn(
-                            `BLE write failed (attempt ${attempt + 1}/${maxRetries + 1}), retrying in ${backoff}ms`,
-                            err
+                    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+                        try {
+                            // Web Bluetooth writeWithoutResponse
+                            // @ts-ignore
+                            await Wizard.writeChar.writeValueWithoutResponse(chunk);
+                            lastErr = null;
+                            break;
+                        } catch (err) {
+                            lastErr = err;
+                            if (attempt < maxRetries) {
+                                const backoff = 20 * (1 << attempt); // 20, 40, 80, 160, 320ms
+                                console.warn(
+                                    `BLE write failed (attempt ${attempt + 1}/${maxRetries + 1}), retrying in ${backoff}ms`,
+                                    err
+                                );
+                                await new Promise(res => setTimeout(res, backoff));
+                            }
+                        }
+                    }
+
+                    // Check for errors
+                    if (lastErr) {
+                        throw new Error(
+                            `Failed to write BLE fragment at offset ${offset} after ${maxRetries + 1} attempts: ${lastErr}`
                         );
-                        await new Promise(res => setTimeout(res, backoff));
                     }
                 }
-            }
-
-            // Check for errors
-            if (lastErr) {
-                throw new Error(
-                    `Failed to write BLE fragment at offset ${offset} after ${maxRetries + 1} attempts: ${lastErr}`
-                );
-            }
+            });
+        } catch (error) {
+            Wizard.apiResolvers.delete(id);
+            throw error;
         }
 
         // Return promise that resolves when notification arrives

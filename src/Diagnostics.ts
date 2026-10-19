@@ -62,6 +62,9 @@ export class Diagnostics {
         $("#ddm-start").on("click", () => this.start());
         $("#ddm-stop").on("click", () => this.stop());
         $("#ddm-download").on("click", () => this.download());
+
+        // Pause polling when the Diagnostics tab is left, so it does not compete with other requests.
+        $("[data-bs-target=\"#tab-diagnostics\"]").on("hidden.bs.tab", () => this.stop());
     }
 
     /**

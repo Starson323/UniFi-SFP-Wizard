@@ -17,6 +17,13 @@ version. They are separate and only coincidentally similar-looking right now.
   confirmed on a 1.1.8 device and documented in `doc/FIRMWARE_1.1.8.md`.
 - API Console preset to read the DDM report.
 
+### Fixed
+
+- **"GATT operation already in progress"** when two requests overlapped, e.g. clicking Internal
+  Logs while live diagnostics was polling. Every Bluetooth write now goes through one queue, and
+  a multi-part message is always sent without other writes in between.
+- Live diagnostics pauses when you leave the Diagnostics tab.
+
 ## [1.5.0] - 2026-10-19
 
 ### Changed
