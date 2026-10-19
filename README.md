@@ -13,8 +13,8 @@ focused on Wizard firmware 1.1.8 and newer.
 
 **Web app:** https://starson323.github.io/UniFi-SFP-Wizard/
 
-The app is organised into tabs: **Module** (read, back up and write), **Profile Store**,
-**SFP Builder**, **Device** and **Advanced**. The bar at the top shows the connection status and
+The app is organised into tabs: **Module** (read, back up and write), **Diagnostics**,
+**Profile Store**, **SFP Builder**, **Device** and **Advanced**. The bar at the top shows the connection status and
 the Connect button.
 
 ### Browser requirements
@@ -34,6 +34,8 @@ The app uses the Web Bluetooth API, which means:
 - **Modules:** read, back up (Save) and write SFP/QSFP EEPROMs, with a mandatory backup before
   any write
 - **Write sources:** a local file, the community Repository, My Backups, or the SFP Builder
+- **Live diagnostics (firmware 1.1.8+):** temperature, voltage, laser bias and TX/RX power with
+  alarm limits and charts, from the Wizard's DDM Info mode
 - **Profile Store (firmware 1.1.8+):** list and download the profiles stored on the Wizard
 - **SFP Builder:** build SFP, SFP+ and SFP28 profiles from scratch or from a template
 - **API Console:** send raw requests to the Wizard for exploring its API
@@ -106,6 +108,24 @@ search box to filter by serial number, part number or vendor.
 Backups are stored in the browser (IndexedDB) on the device that made them. A backup saved on
 your phone is not visible on your laptop, and clearing the browser's site data deletes them.
 Keep the downloaded `.uieeprom` files somewhere safe as well.
+
+### Live diagnostics (DDM)
+
+Shows the inserted module's live readings: temperature, supply voltage, laser bias current, TX
+power and RX power. Needs Wizard firmware 1.1.8 or newer and a module with diagnostics (most
+optical modules).
+
+1. Insert the module, and on the Wizard open **DDM Info**. This switches the laser on and records
+   a reading every second.
+2. In the app, open the **Diagnostics** tab and click **Start**.
+3. Each reading is shown with its normal range and a chart of recent values. The coloured edge
+   shows the state: green is normal, amber is outside the warning limits, red is outside the
+   alarm limits. The limits come from the module itself.
+4. The view updates every 2 seconds while DDM Info stays open. Click **Stop** to pause, or
+   **Download CSV** to save every reading recorded so far.
+
+RX power shows **No signal** when no light reaches the module, for example with no fibre
+connected. Copper modules have no diagnostics.
 
 ### Profile Store
 

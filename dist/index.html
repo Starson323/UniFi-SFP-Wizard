@@ -60,6 +60,11 @@
             </button>
         </li>
         <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-diagnostics" type="button"
+                    role="tab">Diagnostics
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
             <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-store" type="button" role="tab">
                 Profile Store
             </button>
@@ -196,6 +201,36 @@
             </div>
         </section>
         <!-- End: Module Tab -->
+
+        <!-- Start: Diagnostics Tab -->
+        <section class="tab-pane fade" id="tab-diagnostics" role="tabpanel">
+            <div class="panel">
+                <div id="wizard-diagnostics">
+                    <h2 class="panel-title">Live diagnostics (DDM)</h2>
+                    <p class="panel-sub">Temperature, voltage, laser bias and optical power from the inserted module.
+                        On the Wizard, insert a module and open <b>DDM Info</b>, which switches the laser on and
+                        records a reading every second. Then click Start.</p>
+
+                    <div class="actions needConnected">
+                        <button type="button" id="ddm-start" disabled class="btn btn-primary">Start</button>
+                        <button type="button" id="ddm-stop" class="btn btn-outline-secondary ignoreConnect" hidden>
+                            Stop
+                        </button>
+                        <button type="button" id="ddm-download" class="btn btn-outline-secondary ignoreConnect"
+                                disabled>Download CSV
+                        </button>
+                    </div>
+                    <p class="panel-note" id="ddm-status"></p>
+
+                    <p class="ddm-empty" id="ddm-empty">No readings yet.</p>
+
+                    <dl class="kv ddm-module" id="ddm-module"></dl>
+                    <p class="panel-note mb-3" id="ddm-samples"></p>
+                    <div class="ddm-grid" id="ddm-cards"></div>
+                </div>
+            </div>
+        </section>
+        <!-- End: Diagnostics Tab -->
 
         <!-- Start: Profile Store Tab -->
         <section class="tab-pane fade" id="tab-store" role="tabpanel">

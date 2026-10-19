@@ -13,6 +13,7 @@ import {ApiConsole} from "./ApiConsole";
 import {ProfileStore} from "./ProfileStore";
 import {Eeprom} from "./Eeprom";
 import {SfpBuilder} from "./SfpBuilder";
+import {Diagnostics} from "./Diagnostics";
 import untar from "js-untar";
 
 
@@ -76,6 +77,9 @@ class Wizard {
     // Store the SFP Builder, whose template list includes My Backups.
     private static sfpBuilder: SfpBuilder;
 
+    // Store the live DDM view.
+    private static diagnostics: Diagnostics;
+
     // Store the on-device Profile Store view.
     private static profileStore: ProfileStore;
 
@@ -104,6 +108,9 @@ class Wizard {
 
         // Prepare on-device Profile Store view.
         Wizard.profileStore = new ProfileStore((method, path, body, timeoutMs) => Wizard.sendApiRequest(method, path, body, timeoutMs), () => Wizard.handleMAC(Wizard.deviceId), () => this.refreshBackupList(Wizard.backupSearch.val() as string));
+
+        // Prepare live DDM view.
+        Wizard.diagnostics = new Diagnostics((method, path, body, timeoutMs) => Wizard.sendApiRequest(method, path, body, timeoutMs), () => Wizard.handleMAC(Wizard.deviceId));
 
         // Prepare SFP Builder; "Use for Write" selects the built profile as the write source.
         Wizard.sfpBuilder = new SfpBuilder((data, label) => {
@@ -149,6 +156,7 @@ class Wizard {
             // Clear Fields.
             Wizard.clearFields();
             Wizard.profileStore?.clear();
+            Wizard.diagnostics?.clear();
         }
 
         console.log(`Set connected state to ${state}`)

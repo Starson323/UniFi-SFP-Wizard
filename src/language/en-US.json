@@ -89,5 +89,12 @@
   "builder-info-blank": "A blank profile has no vendor-specific data and no diagnostics (DDM). Switches that check vendor data will need a template from a genuine module.",
   "builder-help-keep": "Keeps the speed, media and reach bytes exactly as they are in the template.",
   "status-connected": "Connected",
-  "status-disconnected": "Not connected"
+  "status-disconnected": "Not connected",
+  "ddm-none": "No DDM readings on the Wizard yet. Insert a module and open DDM Info on the Wizard, then click Start again.",
+  "ddm-live": "Live: updating every 2 seconds while DDM Info is open on the Wizard.",
+  "ddm-stopped": "Stopped. Click Start to resume.",
+  "ddm-error": "Unable to read the DDM readings from the Wizard.",
+  "ddm-samples": "{{count}} samples over {{seconds}} s",
+  "ddm-no-signal": "No signal",
+  "ddm-range": "Normal {{low}} to {{high}} {{unit}}"
 }

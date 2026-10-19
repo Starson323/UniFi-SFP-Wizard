@@ -5,6 +5,18 @@ All notable changes to this fork (`Starson323/UniFi-SFP-Wizard`) are documented 
 This version number tracks the **web app**, not the physical Wizard device's own firmware
 version. They are separate and only coincidentally similar-looking right now.
 
+## [1.6.0] - 2026-10-19
+
+### Added
+
+- **Live diagnostics (DDM)**: a new Diagnostics tab shows the inserted module's temperature,
+  voltage, laser bias, TX power and RX power while DDM Info is open on the Wizard. Each reading
+  shows its normal range, a green/amber/red state from the module's own alarm and warning
+  limits, and a chart of recent values. Updates every 2 seconds, and the full report can be
+  downloaded as CSV. Uses the Wizard's `/ddm/valid`, `/ddm/start` and `/ddm/data` endpoints,
+  confirmed on a 1.1.8 device and documented in `doc/FIRMWARE_1.1.8.md`.
+- API Console preset to read the DDM report.
+
 ## [1.5.0] - 2026-10-19
 
 ### Changed

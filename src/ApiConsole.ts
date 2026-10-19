@@ -42,6 +42,7 @@ export class ApiConsole {
         {label: "Restore: read records (first 2048 bytes)", method: "GET", path: "/xsfp/recover/records/data", body: {offset: 0, chunk: 2048}},
         {label: "DDM: valid", method: "GET", path: "/ddm/valid", body: {}},
         {label: "DDM: start", method: "GET", path: "/ddm/start", body: {}},
+        {label: "DDM: read report (first 2048 bytes)", method: "GET", path: "/ddm/data", body: {offset: 0, chunk: 2048}},
         {label: "Module: details", method: "GET", path: "/xsfp/module/details", body: {}},
         {label: "Firmware info", method: "GET", path: "/fw", body: {}},
         {label: "Device settings", method: "GET", path: "/settings", body: {}},

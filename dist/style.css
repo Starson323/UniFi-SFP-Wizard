@@ -442,6 +442,90 @@ main {
     cursor: pointer;
 }
 
+/* ---------- Diagnostics ---------- */
+.ddm-empty {
+    margin: 1rem 0 0;
+    color: var(--text-faint);
+}
+
+.ddm-module:empty {
+    display: none;
+}
+
+.ddm-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.ddm-card {
+    padding: 1rem 1rem .75rem;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--text-faint);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+}
+
+.ddm-card.ddm-ok {
+    border-left-color: var(--ok);
+}
+
+.ddm-card.ddm-warn {
+    border-left-color: var(--warn);
+}
+
+.ddm-card.ddm-alarm {
+    border-left-color: var(--danger);
+}
+
+.ddm-label {
+    color: var(--text-muted);
+    font-size: .85rem;
+    font-weight: 550;
+}
+
+.ddm-value {
+    margin-top: .15rem;
+    font-size: 1.5rem;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+}
+
+.ddm-warn .ddm-value {
+    color: var(--warn);
+}
+
+.ddm-alarm .ddm-value {
+    color: var(--danger);
+}
+
+.ddm-range {
+    color: var(--text-faint);
+    font-size: .78rem;
+}
+
+.ddm-spark {
+    display: block;
+    width: 100%;
+    height: 56px;
+    margin-top: .5rem;
+}
+
+.ddm-line {
+    fill: none;
+    stroke: var(--accent-hover);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+}
+
+.ddm-limit {
+    stroke: var(--warn);
+    stroke-width: 1;
+    stroke-dasharray: 4 4;
+    opacity: .6;
+    vector-effect: non-scaling-stroke;
+}
+
 /* ---------- Code / Log ---------- */
 .code-block {
     max-height: 24rem;
