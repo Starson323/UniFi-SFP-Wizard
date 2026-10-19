@@ -1,7 +1,6 @@
 import $ from "jquery";
 import i18next from "i18next";
 import * as enCommon from "./language/en-US.json";
-import * as deCommon from "./language/de-DE.json";
 import {GATTUUID} from "./GATTUUID";
 import {APIRequest} from "./APIRequest";
 import {Confirm, Loading, Notify} from "notiflix";
@@ -13,6 +12,7 @@ import {BackupStore} from "./BackupStore";
 import {ApiConsole} from "./ApiConsole";
 import {ProfileStore} from "./ProfileStore";
 import {Eeprom} from "./Eeprom";
+import {SfpBuilder} from "./SfpBuilder";
 import untar from "js-untar";
 
 
@@ -40,9 +40,11 @@ class Wizard {
     private static sourceFileRadio: JQuery<HTMLElement>;
     private static sourceRepoRadio: JQuery<HTMLElement>;
     private static sourceBackupRadio: JQuery<HTMLElement>;
+    private static sourceBuilderRadio: JQuery<HTMLElement>;
     private static fileGroup: JQuery<HTMLElement>;
     private static repoGroup: JQuery<HTMLElement>;
     private static backupGroup: JQuery<HTMLElement>;
+    private static builderGroup: JQuery<HTMLElement>;
     private static backupSearch: JQuery<HTMLElement>;
     private static backupSelect: JQuery<HTMLElement>;
 
@@ -51,6 +53,9 @@ class Wizard {
 
     // Store the currently selected Local Backup entry's bytes.
     private static backupEepromData: Uint8Array | null = null;
+
+    // Store the profile handed over by the SFP Builder.
+    private static builderEepromData: Uint8Array | null = null;
 
     // Store GATT Characteristic Instances.
     private static infoChar: BluetoothRemoteGATTCharacteristic;
@@ -67,6 +72,9 @@ class Wizard {
     private static requestCounter = 0;
     // Store Wizard Mac to Query via Service V2 (Hybrid HTTP API).
     private static deviceId: any;
+
+    // Store the SFP Builder, whose template list includes My Backups.
+    private static sfpBuilder: SfpBuilder;
 
     // Store the on-device Profile Store view.
     private static profileStore: ProfileStore;
@@ -96,6 +104,14 @@ class Wizard {
 
         // Prepare on-device Profile Store view.
         Wizard.profileStore = new ProfileStore((method, path, body, timeoutMs) => Wizard.sendApiRequest(method, path, body, timeoutMs), () => Wizard.handleMAC(Wizard.deviceId), () => this.refreshBackupList(Wizard.backupSearch.val() as string));
+
+        // Prepare SFP Builder; "Use for Write" selects the built profile as the write source.
+        Wizard.sfpBuilder = new SfpBuilder((data, label) => {
+            Wizard.builderEepromData = data;
+            $("#sfp-builder-selected").text(label);
+            (Wizard.sourceBuilderRadio[0] as HTMLInputElement).checked = true;
+            Wizard.sourceBuilderRadio.trigger("change");
+        });
 
         // Fetch Repository.
         Repository.fetchTemplates();
@@ -284,6 +300,7 @@ class Wizard {
                 Wizard.fileGroup.show();
                 Wizard.repoGroup.hide();
                 Wizard.backupGroup.hide();
+                Wizard.builderGroup.hide();
 
                 // Clear whatever the other two sources had selected/loaded.
                 (Wizard.repoSelect[0] as HTMLSelectElement).selectedIndex = 0;
@@ -297,6 +314,7 @@ class Wizard {
                 Wizard.repoGroup.show();
                 Wizard.fileGroup.hide();
                 Wizard.backupGroup.hide();
+                Wizard.builderGroup.hide();
 
                 // Clear whatever the other two sources had selected.
                 (Wizard.eepromUpload[0] as HTMLInputElement).value = "";
@@ -309,6 +327,7 @@ class Wizard {
                 Wizard.backupGroup.show();
                 Wizard.fileGroup.hide();
                 Wizard.repoGroup.hide();
+                Wizard.builderGroup.hide();
 
                 // Clear whatever the other two sources had selected.
                 (Wizard.eepromUpload[0] as HTMLInputElement).value = "";
@@ -317,6 +336,15 @@ class Wizard {
 
                 // Populate the library fresh every time this source is opened.
                 this.refreshBackupList();
+            }
+        });
+
+        Wizard.sourceBuilderRadio.on("change", () => {
+            if ((Wizard.sourceBuilderRadio[0] as HTMLInputElement).checked) {
+                Wizard.builderGroup.show();
+                Wizard.fileGroup.hide();
+                Wizard.repoGroup.hide();
+                Wizard.backupGroup.hide();
             }
         });
 
@@ -546,9 +574,6 @@ class Wizard {
             resources: {
                 "en-US": {
                     common: enCommon,
-                },
-                "de": {
-                    common: deCommon
                 }
             }
         });
@@ -597,9 +622,11 @@ class Wizard {
         Wizard.sourceFileRadio = $("#sfp-source-file");
         Wizard.sourceRepoRadio = $("#sfp-source-repo");
         Wizard.sourceBackupRadio = $("#sfp-source-backup");
+        Wizard.sourceBuilderRadio = $("#sfp-source-builder");
         Wizard.fileGroup = $("#sfp-file-group");
         Wizard.repoGroup = $("#sfp-repo-group");
         Wizard.backupGroup = $("#sfp-backup-group");
+        Wizard.builderGroup = $("#sfp-builder-group");
         Wizard.backupSearch = $("#backup-search");
         Wizard.backupSelect = $("#sfp-backup");
 
@@ -1940,6 +1967,10 @@ class Wizard {
             return Wizard.backupEepromData !== null;
         }
 
+        if ((Wizard.sourceBuilderRadio[0] as HTMLInputElement).checked) {
+            return Wizard.builderEepromData !== null;
+        }
+
         // @ts-ignore
         return Wizard.isFileSelected(Wizard.eepromUpload);
     }
@@ -1954,6 +1985,9 @@ class Wizard {
     private async refreshBackupList(term: string = ""): Promise<void> {
         try {
             const records = await BackupStore.search(term);
+
+            // Keep the SFP Builder template list in step with the backup library.
+            Wizard.sfpBuilder?.refreshTemplates();
 
             Wizard.backupSelect.empty();
 
@@ -2093,6 +2127,10 @@ class Wizard {
 
         if ((Wizard.sourceBackupRadio[0] as HTMLInputElement).checked) {
             return Wizard.backupEepromData;
+        }
+
+        if ((Wizard.sourceBuilderRadio[0] as HTMLInputElement).checked) {
+            return Wizard.builderEepromData;
         }
 
         const input = document.getElementById("sfp-file") as HTMLInputElement | null;

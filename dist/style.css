@@ -265,7 +265,9 @@ input[disabled], select[disabled] {
 
 /* The compact line height above overlaps wrapped text. */
 #wizard-api-console p,
-#wizard-profile-store p {
+#wizard-profile-store p,
+#wizard-sfp-builder p,
+#sfp-builder-group p {
     line-height: 1.5;
 }
 

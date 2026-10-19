@@ -102,6 +102,11 @@ The tool connects to your SFP Wizard using the Web Bluetooth API.">
                                                    id="sfp-source-backup" autocomplete="off">
                                             <label class="btn btn-outline-primary" for="sfp-source-backup">My
                                                 Backups</label>
+
+                                            <input type="radio" class="btn-check" name="sfp-source"
+                                                   id="sfp-source-builder" autocomplete="off">
+                                            <label class="btn btn-outline-primary" for="sfp-source-builder">SFP
+                                                Builder</label>
                                         </div>
                                     </div>
                                     <!-- End: Source Toggle -->
@@ -139,6 +144,14 @@ The tool connects to your SFP Wizard using the Web Bluetooth API.">
                                         </select>
                                     </div>
                                     <!-- End: Local Backup Library -->
+
+                                    <!-- Start: SFP Builder Source -->
+                                    <div class="mb-3" id="sfp-builder-group" style="display: none;">
+                                        <label class="form-label">Profile from the SFP Builder</label>
+                                        <p class="form-control-plaintext" id="sfp-builder-selected">Nothing built yet.
+                                            Build a profile in the SFP Builder below and click "Use for Write".</p>
+                                    </div>
+                                    <!-- End: SFP Builder Source -->
                                 </div>
                                 <!-- End: SFP Flash -->
 
@@ -205,6 +218,109 @@ The tool connects to your SFP Wizard using the Web Bluetooth API.">
                                     </div>
                                 </div>
                                 <!-- End: Profile Store -->
+                            </div>
+                        </div>
+                        <br>
+                        <div class="card">
+                            <div class="card-body">
+                                <!-- Start: SFP Builder -->
+                                <div id="wizard-sfp-builder">
+                                    <h5 class="card-title">SFP Builder</h5>
+                                    <p class="card-text">Build an SFP, SFP+ or SFP28 profile from scratch or from a
+                                        template. Starting from a dump of a genuine module is the most reliable way to
+                                        get a switch to accept it. Works without a Wizard connected.</p>
+
+                                    <div id="builder-form">
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-md-8">
+                                                <label for="builder-template" class="form-label">Start from</label>
+                                                <select class="form-select" id="builder-template"></select>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="builder-file" class="form-label">or load a file</label>
+                                                <input class="form-control" type="file" accept=".uieeprom"
+                                                       id="builder-file">
+                                            </div>
+                                        </div>
+
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-md-8">
+                                                <label for="builder-type" class="form-label">Module type</label>
+                                                <select class="form-select" id="builder-type">
+                                                    <option value="keep">Keep the template's type</option>
+                                                </select>
+                                                <p class="form-text mb-0" id="builder-type-help"></p>
+                                            </div>
+                                            <div class="col-md-4" id="builder-cable-group" style="display: none;">
+                                                <label for="builder-cable" class="form-label">Cable length (m)</label>
+                                                <input class="form-control" type="number" min="1" max="255" value="1"
+                                                       id="builder-cable">
+                                            </div>
+                                        </div>
+
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-md-8">
+                                                <label for="builder-vendor" class="form-label">Vendor name (max 16)</label>
+                                                <input class="form-control" type="text" maxlength="16"
+                                                       list="builder-vendors" id="builder-vendor" spellcheck="false">
+                                                <datalist id="builder-vendors"></datalist>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="builder-oui" class="form-label">Vendor OUI</label>
+                                                <input class="form-control font-monospace" type="text" maxlength="8"
+                                                       placeholder="00:90:65" id="builder-oui" spellcheck="false">
+                                            </div>
+                                        </div>
+
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-md-8">
+                                                <label for="builder-part" class="form-label">Part number (max 16)</label>
+                                                <input class="form-control" type="text" maxlength="16"
+                                                       id="builder-part" spellcheck="false">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="builder-rev" class="form-label">Revision (max 4)</label>
+                                                <input class="form-control" type="text" maxlength="4"
+                                                       id="builder-rev" spellcheck="false">
+                                            </div>
+                                        </div>
+
+                                        <div class="row g-2 mb-3">
+                                            <div class="col-md-8">
+                                                <label for="builder-sn" class="form-label">Serial number (max 16)</label>
+                                                <div class="input-group">
+                                                    <input class="form-control" type="text" maxlength="16"
+                                                           id="builder-sn" spellcheck="false">
+                                                    <button class="btn btn-outline-secondary" type="button"
+                                                            id="builder-sn-generate">Generate
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="builder-date" class="form-label">Date code (YYMMDD)</label>
+                                                <input class="form-control font-monospace" type="text" maxlength="8"
+                                                       id="builder-date" spellcheck="false">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <p><b>Result:</b> <span id="builder-summary"></span></p>
+                                    <ul class="small" id="builder-messages"></ul>
+
+                                    <div class="btn-group mb-3">
+                                        <button type="button" id="builder-download" class="btn btn-primary">Download
+                                        </button>
+                                        <button type="button" id="builder-use" class="btn btn-success">Use for Write
+                                        </button>
+                                    </div>
+
+                                    <details>
+                                        <summary>Preview (page A0h, bytes 0-127)</summary>
+                                        <pre id="builder-hex" class="font-monospace small mt-2"
+                                             style="overflow: auto; white-space: pre;"></pre>
+                                    </details>
+                                </div>
+                                <!-- End: SFP Builder -->
                             </div>
                         </div>
                         <br>
@@ -312,9 +428,6 @@ The tool connects to your SFP Wizard using the Web Bluetooth API.">
         <li class="nav-item"><a href="https://github.com/Starson323/UniFi-SFP-Wizard/issues" rel="noopener noreferrer"
                                 target="_blank" class="nav-link px-2">Report an Issue</a>
         </li>
-        <li class="nav-item"><a href="https://ubiquiti-networks-forum.de/board/" rel="noopener noreferrer"
-                                target="_blank" class="nav-link px-2">Unofficial
-            Community</a></li>
     </ul>
 
     <!--    <div class="justify-content-center" style="width: 100%; display: flex;">-->
