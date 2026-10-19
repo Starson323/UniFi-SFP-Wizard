@@ -1,3 +1,4 @@
+<!doctype html>
 <html lang="en-US" data-bs-theme="dark">
 <head>
     <meta charset="utf-8">
@@ -7,439 +8,466 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-
+    <link rel="stylesheet" href="./style.css">
     <link rel="manifest" href="manifest.json">
 
     <meta name="author" content="Starson323, based on the original by Jan Heil">
     <meta name="publisher" content="Starson323">
-    <meta name="description" content="This tool allows you to program SFP modules via your browser.
-The tool connects to your SFP Wizard using the Web Bluetooth API.">
+    <meta name="description" content="Read, back up, build and write SFP module EEPROMs with the UniFi SFP Wizard, right from your browser over Bluetooth.">
     <meta name="keywords"
-          content="Wizard, SFP, SFP+, SFP28, QSFP+, QSFP28, Tool, Client, App, UniFi, Ubiquiti, Bluetooth, BLE, Fibre, Module, Programmer, Flasher, Webinterface, TypeScript, JavaScript, HTML, CSS, JS, Repository">
-    <meta name="page-topic" content="Verwaltung">
-    <meta name="page-type" content="Software Download">
-    <meta name="audience" content="Profis">
-    <meta http-equiv="content-language" content="de">
+          content="Wizard, SFP, SFP+, SFP28, QSFP+, QSFP28, UniFi, Ubiquiti, Bluetooth, BLE, Fibre, Module, Programmer, EEPROM">
     <meta name="robots" content="index, follow">
-
 </head>
 <body>
 
-<main class="flex-grow-1">
-    <!-- Start: Container -->
-    <div class="container" id="page-container">
-        <div class="hero">
-            <br>
-            <h1>SFP Wizard</h1>
-            <p id="page-info"></p>
-            <b id="page-affiliate"></b>
-            <br>
-            <br>
+<!-- Start: Top Bar -->
+<header class="topbar">
+    <div class="container topbar-inner">
+        <div class="brand">
+            <span class="brand-mark" aria-hidden="true"></span>
+            <span class="brand-name">SFP Wizard</span>
         </div>
 
-        <div class="row align-items-start">
-            <div class="col-12 col-sm-4">
-                <!-- Start: Device Card -->
-                <div class="card">
-                    <a target="_blank"
-                       href="https://eu.store.ui.com/eu/en/category/accessories-sfp-liberation-day/collections/accessories-pro-direct-attach-cables/products/uacc-sfp-wizard">
-                        <img style="padding: 1.5rem" class="card-img-top" alt="UniFi SFP Wizard"
-                             src="https://images.svc.ui.com/?u=https%3A%2F%2Fcdn.ecomm.ui.com%2Fproducts%2Fc173c693-c05c-4d8a-ba86-e544fbe42633%2Fa07eba13-9222-4789-bb1d-20e58048a31f.png&q=75&w=3840">
-                    </a>
+        <div class="status">
+            <span class="status-dot" id="status-dot" aria-hidden="true"></span>
+            <span class="status-text" id="status-text">Not connected</span>
+            <span class="status-detail" id="status-detail" hidden>
+                <span data-device="name"></span>
+                <span class="status-sep">FW <span data-device="firmware"></span></span>
+                <span class="status-sep"><span data-device="battery"></span></span>
+            </span>
+            <div class="needConnected">
+                <button type="button" id="connect-wizard" class="btn btn-primary btn-sm ignoreConnect">Connect</button>
+            </div>
+        </div>
+    </div>
+</header>
+<!-- End: Top Bar -->
 
-                    <div class="card-body">
-                        <!-- Start: Device Info -->
-                        <div id="device-info">
-                            <p><b id="page-name">Name:</b> <span id="device-name"></span></p>
-                            <p><b id="page-serial">Serial:</b> <span id="device-serial"></span></p>
-                            <p><b id="page-firmware">Firmware:</b> <span id="device-firmware"></span></p>
-                            <p><b id="page-battery">Battery:</b> <span id="device-battery"></span></p>
-                        </div>
-                        <!-- End: Device Info -->
+<main class="container py-4">
+    <!-- Start: Connect Hint -->
+    <div class="hint" id="connect-hint">
+        <p id="page-info" class="mb-1"></p>
+        <p class="hint-sub mb-0">Use Chrome or Edge. The SFP Builder works without a Wizard connected.</p>
+    </div>
+    <!-- End: Connect Hint -->
 
-                        <!-- Start: Device Connect -->
-                        <div class="btn-group needConnected">
-                            <button type="button" id="connect-wizard" class="btn btn-primary ignoreConnect">Connect
-                            </button>
-                            <button type="button" id="poweroff-wizard" disabled class="btn btn-danger">Shutdown</button>
-                            <button type="button" id="reboot-wizard" disabled class="btn btn-danger">Reboot</button>
+    <!-- Start: Tabs -->
+    <ul class="nav nav-pills app-tabs" id="app-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-module" type="button"
+                    role="tab">Module
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-store" type="button" role="tab">
+                Profile Store
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-builder" type="button" role="tab">
+                SFP Builder
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-device" type="button" role="tab">
+                Device
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-advanced" type="button" role="tab">
+                Advanced
+            </button>
+        </li>
+    </ul>
+    <!-- End: Tabs -->
+
+    <div class="tab-content">
+        <!-- Start: Module Tab -->
+        <section class="tab-pane fade show active" id="tab-module" role="tabpanel">
+            <div class="row g-4">
+                <div class="col-lg-5">
+                    <div class="panel h-100">
+                        <!-- Start: SFP Module -->
+                        <div id="wizard-module">
+                            <h2 class="panel-title">Inserted module</h2>
+                            <p class="panel-sub" id="page-module-meta"></p>
+
+                            <dl class="kv">
+                                <dt id="page-sfp-part">Part</dt>
+                                <dd id="sfp-part"></dd>
+                                <dt id="page-sfp-vendor">Vendor</dt>
+                                <dd id="sfp-vendor"></dd>
+                                <dt id="page-sfp-serial">Serial</dt>
+                                <dd id="sfp-sn"></dd>
+                                <dt id="page-sfp-rev">Revision</dt>
+                                <dd id="sfp-rev"></dd>
+                                <dt id="page-sfp-type">Type</dt>
+                                <dd id="sfp-type"></dd>
+                                <dt id="page-sfp-compliance">Compliance</dt>
+                                <dd id="sfp-compliance"></dd>
+                            </dl>
+
+                            <div class="actions needConnected">
+                                <button type="button" id="read-sfp" disabled class="btn btn-outline-primary">Read
+                                </button>
+                                <button type="button" id="save-sfp" disabled class="btn btn-outline-primary">Save
+                                </button>
+                            </div>
+                            <p class="panel-note">Save downloads a backup of the module and keeps a copy in My
+                                Backups. A backup is required before writing.</p>
                         </div>
-                        <!-- End: Device Connect -->
+                        <!-- End: SFP Module -->
                     </div>
                 </div>
-                <!-- End: Device Card -->
+
+                <div class="col-lg-7">
+                    <div class="panel h-100">
+                        <!-- Start: SFP Flash -->
+                        <div id="sfp-flash">
+                            <h2 class="panel-title">Write a profile</h2>
+                            <p class="panel-sub">Choose where the new profile comes from, then click Write and
+                                confirm on the Wizard's screen.</p>
+
+                            <!-- Start: Source Toggle -->
+                            <div class="segmented mb-3" role="group" aria-label="EEPROM source">
+                                <input type="radio" class="btn-check" name="sfp-source" id="sfp-source-file"
+                                       autocomplete="off" checked>
+                                <label class="btn btn-outline-primary" for="sfp-source-file">Local File</label>
+
+                                <input type="radio" class="btn-check" name="sfp-source" id="sfp-source-repo"
+                                       autocomplete="off">
+                                <label class="btn btn-outline-primary" for="sfp-source-repo">Repository</label>
+
+                                <input type="radio" class="btn-check" name="sfp-source" id="sfp-source-backup"
+                                       autocomplete="off">
+                                <label class="btn btn-outline-primary" for="sfp-source-backup">My Backups</label>
+
+                                <input type="radio" class="btn-check" name="sfp-source" id="sfp-source-builder"
+                                       autocomplete="off">
+                                <label class="btn btn-outline-primary" for="sfp-source-builder">SFP Builder</label>
+                            </div>
+                            <!-- End: Source Toggle -->
+
+                            <!-- Start: EEPROM Config Upload -->
+                            <div class="mb-3" id="sfp-file-group">
+                                <label for="sfp-file" class="form-label">Profile file (.uieeprom)</label>
+                                <input class="form-control" disabled type="file" accept=".uieeprom" id="sfp-file">
+                            </div>
+                            <!-- End: EEPROM Config Upload -->
+
+                            <!-- Start: Repo EEPROM Config Select -->
+                            <div class="mb-3" id="sfp-repo-group" style="display: none;">
+                                <label for="sfp-repo" class="form-label">Community profile</label>
+                                <select class="form-select" id="sfp-repo" disabled>
+                                    <option selected>Select a profile</option>
+                                </select>
+                            </div>
+                            <!-- End: Repo EEPROM Config Select -->
+
+                            <!-- Start: Local Backup Library -->
+                            <div class="mb-3" id="sfp-backup-group" style="display: none;">
+                                <label for="backup-search" class="form-label">My Backups (saved in this
+                                    browser)</label>
+                                <input class="form-control mb-2" type="search" id="backup-search"
+                                       placeholder="Search by serial, part number or vendor">
+                                <select class="form-select" id="sfp-backup" size="6" aria-label="Local EEPROM backups">
+                                    <option value="" disabled>No backups saved yet. Click Save on a module first.
+                                    </option>
+                                </select>
+                            </div>
+                            <!-- End: Local Backup Library -->
+
+                            <!-- Start: SFP Builder Source -->
+                            <div class="mb-3" id="sfp-builder-group" style="display: none;">
+                                <label class="form-label">Profile from the SFP Builder</label>
+                                <p class="selected-profile" id="sfp-builder-selected">Nothing built yet. Build a
+                                    profile in the SFP Builder tab and click "Use for Write".</p>
+                            </div>
+                            <!-- End: SFP Builder Source -->
+
+                            <div class="actions needConnected">
+                                <button type="button" id="write-sfp" disabled class="btn btn-primary">Write</button>
+                            </div>
+                        </div>
+                        <!-- End: SFP Flash -->
+                    </div>
+                </div>
             </div>
+        </section>
+        <!-- End: Module Tab -->
 
-            <div class="col-12 col-sm-8">
-                <!-- Start: Device Controls -->
-                <div class="card">
-                    <div class="card-body">
-                        <!-- Start: Wizard Controls -->
-                        <div id="wizard-controls">
-                            <!-- EOL -->
-                        </div>
-                        <!-- End: Wizard Controls -->
-                        <br>
-                        <div class="card">
-                            <div class="card-body">
-                                <!-- Start: SFP Flash -->
-                                <div id="sfp-flash">
-                                    <h5 class="card-title">Module Flash</h5>
+        <!-- Start: Profile Store Tab -->
+        <section class="tab-pane fade" id="tab-store" role="tabpanel">
+            <div class="panel">
+                <!-- Start: Profile Store -->
+                <div id="wizard-profile-store">
+                    <h2 class="panel-title">Profile Store</h2>
+                    <p class="panel-sub">Profiles saved on the Wizard itself (firmware 1.1.8 or newer). Add them on the
+                        Wizard with Copy &amp; Save Profile.</p>
 
-                                    <!-- Start: Source Toggle -->
-                                    <div class="mb-3">
-                                        <div class="btn-group" role="group" aria-label="EEPROM Source">
-                                            <input type="radio" class="btn-check" name="sfp-source"
-                                                   id="sfp-source-file" autocomplete="off" checked>
-                                            <label class="btn btn-outline-primary" for="sfp-source-file">Local
-                                                File</label>
+                    <div class="actions needConnected">
+                        <button type="button" id="store-load" disabled class="btn btn-primary">Load Profiles</button>
+                    </div>
 
-                                            <input type="radio" class="btn-check" name="sfp-source"
-                                                   id="sfp-source-repo" autocomplete="off">
-                                            <label class="btn btn-outline-primary" for="sfp-source-repo">Repository</label>
+                    <p class="panel-note" id="store-status"></p>
 
-                                            <input type="radio" class="btn-check" name="sfp-source"
-                                                   id="sfp-source-backup" autocomplete="off">
-                                            <label class="btn btn-outline-primary" for="sfp-source-backup">My
-                                                Backups</label>
+                    <div class="table-responsive">
+                        <table class="table align-middle app-table" id="store-table">
+                            <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Part Number</th>
+                                <th>Serial</th>
+                                <th>Size</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <!-- End: Profile Store -->
+            </div>
+        </section>
+        <!-- End: Profile Store Tab -->
 
-                                            <input type="radio" class="btn-check" name="sfp-source"
-                                                   id="sfp-source-builder" autocomplete="off">
-                                            <label class="btn btn-outline-primary" for="sfp-source-builder">SFP
-                                                Builder</label>
+        <!-- Start: SFP Builder Tab -->
+        <section class="tab-pane fade" id="tab-builder" role="tabpanel">
+            <div class="panel">
+                <!-- Start: SFP Builder -->
+                <div id="wizard-sfp-builder">
+                    <h2 class="panel-title">SFP Builder</h2>
+                    <p class="panel-sub">Build an SFP, SFP+ or SFP28 profile from scratch or from a template.
+                        Starting from a dump of a genuine module is the most reliable way to get a switch to accept
+                        it.</p>
+
+                    <div class="row g-4">
+                        <div class="col-xl-7">
+                            <div id="builder-form">
+                                <h3 class="step-title"><span class="step">1</span> Start from</h3>
+                                <div class="row g-2 mb-4">
+                                    <div class="col-md-7">
+                                        <label for="builder-template" class="form-label">Template</label>
+                                        <select class="form-select" id="builder-template"></select>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label for="builder-file" class="form-label">or load a file</label>
+                                        <input class="form-control" type="file" accept=".uieeprom" id="builder-file">
+                                    </div>
+                                </div>
+
+                                <h3 class="step-title"><span class="step">2</span> Module type</h3>
+                                <div class="row g-2 mb-4">
+                                    <div class="col-md-8">
+                                        <label for="builder-type" class="form-label">Type</label>
+                                        <select class="form-select" id="builder-type">
+                                            <option value="keep">Keep the template's type</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4" id="builder-cable-group" style="display: none;">
+                                        <label for="builder-cable" class="form-label">Cable length (m)</label>
+                                        <input class="form-control" type="number" min="1" max="255" value="1"
+                                               id="builder-cable">
+                                    </div>
+                                    <div class="col-12">
+                                        <p class="type-help" id="builder-type-help"></p>
+                                    </div>
+                                </div>
+
+                                <h3 class="step-title"><span class="step">3</span> Identity</h3>
+                                <div class="row g-2">
+                                    <div class="col-md-8">
+                                        <label for="builder-vendor" class="form-label">Vendor name (max 16)</label>
+                                        <input class="form-control" type="text" maxlength="16" list="builder-vendors"
+                                               id="builder-vendor" spellcheck="false">
+                                        <datalist id="builder-vendors"></datalist>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="builder-oui" class="form-label">Vendor OUI</label>
+                                        <input class="form-control font-monospace" type="text" maxlength="8"
+                                               placeholder="00:90:65" id="builder-oui" spellcheck="false">
+                                    </div>
+                                    <div class="col-md-8">
+                                        <label for="builder-part" class="form-label">Part number (max 16)</label>
+                                        <input class="form-control" type="text" maxlength="16" id="builder-part"
+                                               spellcheck="false">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="builder-rev" class="form-label">Revision (max 4)</label>
+                                        <input class="form-control" type="text" maxlength="4" id="builder-rev"
+                                               spellcheck="false">
+                                    </div>
+                                    <div class="col-md-8">
+                                        <label for="builder-sn" class="form-label">Serial number (max 16)</label>
+                                        <div class="input-group">
+                                            <input class="form-control" type="text" maxlength="16" id="builder-sn"
+                                                   spellcheck="false">
+                                            <button class="btn btn-outline-secondary" type="button"
+                                                    id="builder-sn-generate">Generate
+                                            </button>
                                         </div>
                                     </div>
-                                    <!-- End: Source Toggle -->
-
-                                    <!-- Start: EEPROM Config Upload -->
-                                    <div class="mb-3" id="sfp-file-group">
-                                        <label for="sfp-file" class="form-label">EEPROM Configuration</label>
-                                        <input class="form-control" disabled type="file" accept=".uieeprom"
-                                               id="sfp-file">
+                                    <div class="col-md-4">
+                                        <label for="builder-date" class="form-label">Date code (YYMMDD)</label>
+                                        <input class="form-control font-monospace" type="text" maxlength="8"
+                                               id="builder-date" spellcheck="false">
                                     </div>
-                                    <!-- End: EEPROM Config Upload -->
-
-                                    <!-- Start: Repo EEPROM Config Select -->
-                                    <div class="mb-3" id="sfp-repo-group" style="display: none;">
-                                        <label for="sfp-repo" class="form-label">EEPROM Repository</label>
-                                        <select class="form-select" id="sfp-repo" disabled
-                                                aria-label="Default select example">
-                                            <option selected>Select EEPROM Config</option>
-                                            <option value="1">Todo</option>
-                                        </select>
-                                    </div>
-                                    <!-- End: Repo EEPROM Config Select -->
-
-                                    <!-- Start: Local Backup Library -->
-                                    <div class="mb-3" id="sfp-backup-group" style="display: none;">
-                                        <label for="backup-search" class="form-label">My Backups (saved on this
-                                            device/browser)</label>
-                                        <input class="form-control mb-2" type="search" id="backup-search"
-                                               placeholder="Search by serial, part number, or vendor...">
-                                        <select class="form-select" id="sfp-backup" size="6"
-                                                aria-label="Local EEPROM backups">
-                                            <option value="" disabled>No backups saved yet - click "Save" on a
-                                                module first
-                                            </option>
-                                        </select>
-                                    </div>
-                                    <!-- End: Local Backup Library -->
-
-                                    <!-- Start: SFP Builder Source -->
-                                    <div class="mb-3" id="sfp-builder-group" style="display: none;">
-                                        <label class="form-label">Profile from the SFP Builder</label>
-                                        <p class="form-control-plaintext" id="sfp-builder-selected">Nothing built yet.
-                                            Build a profile in the SFP Builder below and click "Use for Write".</p>
-                                    </div>
-                                    <!-- End: SFP Builder Source -->
                                 </div>
-                                <!-- End: SFP Flash -->
+                            </div>
+                        </div>
 
-                                <div class="btn-group needConnected" role="group">
-                                    <button type="button" id="write-sfp" disabled class="btn btn-primary">Write SFP
+                        <div class="col-xl-5">
+                            <div class="result">
+                                <h3 class="step-title"><span class="step">4</span> Result</h3>
+                                <p class="result-summary" id="builder-summary"></p>
+                                <ul class="messages" id="builder-messages"></ul>
+
+                                <div class="actions">
+                                    <button type="button" id="builder-use" class="btn btn-primary">Use for Write
                                     </button>
-                                    <button type="button" id="save-sfp" disabled class="btn btn-primary">Save SFP
+                                    <button type="button" id="builder-download" class="btn btn-outline-primary">
+                                        Download
                                     </button>
                                 </div>
-                            </div>
-                        </div>
-                        <br>
-                        <div class="card">
-                            <div class="card-body">
-                                <!-- Start: SFP Module -->
-                                <div id="wizard-module">
-                                    <h5 class="card-title">Module Meta</h5>
-                                    <p class="card-text pb-3" id="page-module-meta"></p>
-                                    <p><b id="page-sfp-part">Part:</b> <span id="sfp-part"></span></p>
-                                    <p><b id="page-sfp-rev">Rev:</b> <span id="sfp-rev"></span></p>
-                                    <p><b id="page-sfp-vendor">Vendor:</b> <span id="sfp-vendor"></span></p>
-                                    <p><b id="page-sfp-serial">Serial:</b> <span id="sfp-sn"></span></p>
-                                    <p><b id="page-sfp-type">Type:</b> <span id="sfp-type"></span></p>
-                                    <p><b id="page-sfp-compliance">Compliance:</b> <span id="sfp-compliance"></span></p>
 
-                                    <div class="btn-group needConnected">
-                                        <button type="button" id="read-sfp" disabled
-                                                class="btn btn-primary needConnected">Read SFP
-                                        </button>
-                                    </div>
-                                </div>
-                                <!-- End: SFP Module -->
-                            </div>
-                        </div>
-                        <br>
-                        <div class="card">
-                            <div class="card-body">
-                                <!-- Start: Profile Store -->
-                                <div id="wizard-profile-store">
-                                    <h5 class="card-title">Profile Store</h5>
-                                    <p class="card-text">Profiles saved on the Wizard itself (firmware 1.1.8+).</p>
-
-                                    <div class="btn-group needConnected mb-3">
-                                        <button type="button" id="store-load" disabled class="btn btn-primary">Load
-                                            Profiles
-                                        </button>
-                                    </div>
-
-                                    <p class="small" id="store-status"></p>
-
-                                    <div class="table-responsive">
-                                        <table class="table table-sm align-middle" id="store-table">
-                                            <thead>
-                                            <tr>
-                                                <th>Type</th>
-                                                <th>Part Number</th>
-                                                <th>Serial</th>
-                                                <th>Size</th>
-                                                <th></th>
-                                            </tr>
-                                            </thead>
-                                            <tbody></tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                                <!-- End: Profile Store -->
-                            </div>
-                        </div>
-                        <br>
-                        <div class="card">
-                            <div class="card-body">
-                                <!-- Start: SFP Builder -->
-                                <div id="wizard-sfp-builder">
-                                    <h5 class="card-title">SFP Builder</h5>
-                                    <p class="card-text">Build an SFP, SFP+ or SFP28 profile from scratch or from a
-                                        template. Starting from a dump of a genuine module is the most reliable way to
-                                        get a switch to accept it. Works without a Wizard connected.</p>
-
-                                    <div id="builder-form">
-                                        <div class="row g-2 mb-2">
-                                            <div class="col-md-8">
-                                                <label for="builder-template" class="form-label">Start from</label>
-                                                <select class="form-select" id="builder-template"></select>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label for="builder-file" class="form-label">or load a file</label>
-                                                <input class="form-control" type="file" accept=".uieeprom"
-                                                       id="builder-file">
-                                            </div>
-                                        </div>
-
-                                        <div class="row g-2 mb-2">
-                                            <div class="col-md-8">
-                                                <label for="builder-type" class="form-label">Module type</label>
-                                                <select class="form-select" id="builder-type">
-                                                    <option value="keep">Keep the template's type</option>
-                                                </select>
-                                                <p class="form-text mb-0" id="builder-type-help"></p>
-                                            </div>
-                                            <div class="col-md-4" id="builder-cable-group" style="display: none;">
-                                                <label for="builder-cable" class="form-label">Cable length (m)</label>
-                                                <input class="form-control" type="number" min="1" max="255" value="1"
-                                                       id="builder-cable">
-                                            </div>
-                                        </div>
-
-                                        <div class="row g-2 mb-2">
-                                            <div class="col-md-8">
-                                                <label for="builder-vendor" class="form-label">Vendor name (max 16)</label>
-                                                <input class="form-control" type="text" maxlength="16"
-                                                       list="builder-vendors" id="builder-vendor" spellcheck="false">
-                                                <datalist id="builder-vendors"></datalist>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label for="builder-oui" class="form-label">Vendor OUI</label>
-                                                <input class="form-control font-monospace" type="text" maxlength="8"
-                                                       placeholder="00:90:65" id="builder-oui" spellcheck="false">
-                                            </div>
-                                        </div>
-
-                                        <div class="row g-2 mb-2">
-                                            <div class="col-md-8">
-                                                <label for="builder-part" class="form-label">Part number (max 16)</label>
-                                                <input class="form-control" type="text" maxlength="16"
-                                                       id="builder-part" spellcheck="false">
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label for="builder-rev" class="form-label">Revision (max 4)</label>
-                                                <input class="form-control" type="text" maxlength="4"
-                                                       id="builder-rev" spellcheck="false">
-                                            </div>
-                                        </div>
-
-                                        <div class="row g-2 mb-3">
-                                            <div class="col-md-8">
-                                                <label for="builder-sn" class="form-label">Serial number (max 16)</label>
-                                                <div class="input-group">
-                                                    <input class="form-control" type="text" maxlength="16"
-                                                           id="builder-sn" spellcheck="false">
-                                                    <button class="btn btn-outline-secondary" type="button"
-                                                            id="builder-sn-generate">Generate
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label for="builder-date" class="form-label">Date code (YYMMDD)</label>
-                                                <input class="form-control font-monospace" type="text" maxlength="8"
-                                                       id="builder-date" spellcheck="false">
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <p><b>Result:</b> <span id="builder-summary"></span></p>
-                                    <ul class="small" id="builder-messages"></ul>
-
-                                    <div class="btn-group mb-3">
-                                        <button type="button" id="builder-download" class="btn btn-primary">Download
-                                        </button>
-                                        <button type="button" id="builder-use" class="btn btn-success">Use for Write
-                                        </button>
-                                    </div>
-
-                                    <details>
-                                        <summary>Preview (page A0h, bytes 0-127)</summary>
-                                        <pre id="builder-hex" class="font-monospace small mt-2"
-                                             style="overflow: auto; white-space: pre;"></pre>
-                                    </details>
-                                </div>
-                                <!-- End: SFP Builder -->
-                            </div>
-                        </div>
-                        <br>
-                        <div class="card">
-                            <div class="card-body">
-                                <!-- Start: Wizard Log -->
-                                <div id="wizard-log">
-                                    <h5 class="card-title">Wizard Log</h5>
-
-                                    <div id="log-container">
-
-                                    </div>
-
-                                    <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" id="autoscroll" checked>
-                                        <label class="form-check-label" id="autoscroll-label" for="autoscroll">Autoscroll
-                                            Log</label>
-                                    </div>
-                                </div>
-                                <!-- End: Wizard Log -->
-                            </div>
-                        </div>
-                        <br>
-                        <div class="card">
-                            <div class="card-body">
-                                <!-- Start: API Console -->
-                                <div id="wizard-api-console">
-                                    <h5 class="card-title">API Console (Advanced)</h5>
-                                    <p class="card-text">Send raw requests to the Wizard. Paths are relative to
-                                        <code>/api/1.0/{mac}</code> unless they start with <code>/api/</code>.
-                                        Presets are read-only; POST requests can change or erase data.</p>
-
-                                    <div class="mb-3">
-                                        <label for="api-console-preset" class="form-label">Preset</label>
-                                        <select class="form-select" id="api-console-preset">
-                                            <option selected disabled>Select a preset</option>
-                                        </select>
-                                    </div>
-                                    <div class="input-group mb-3">
-                                        <select class="form-select" id="api-console-method" style="max-width: 7rem;">
-                                            <option value="GET" selected>GET</option>
-                                            <option value="POST">POST</option>
-                                        </select>
-                                        <input type="text" class="form-control" id="api-console-path"
-                                               placeholder="/xsfp/favorites/start" spellcheck="false">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="api-console-body" class="form-label">Body (JSON)</label>
-                                        <textarea class="form-control font-monospace" id="api-console-body" rows="2"
-                                                  spellcheck="false">{}</textarea>
-                                    </div>
-
-                                    <div class="btn-group needConnected mb-3">
-                                        <button type="button" id="api-console-send" disabled class="btn btn-primary">Send
-                                        </button>
-                                        <button type="button" id="api-console-download"
-                                                class="btn btn-secondary ignoreConnect">Download Session
-                                            (<span id="api-console-count">0</span>)
-                                        </button>
-                                    </div>
-
-                                    <pre id="api-console-output" class="font-monospace small"
-                                         style="max-height: 24rem; overflow: auto; white-space: pre;"></pre>
-                                </div>
-                                <!-- End: API Console -->
-                            </div>
-                        </div>
-                        <br>
-                        <div class="card">
-                            <div class="card-body">
-                                <!-- Start: Wizard More -->
-                                <div id="wizard-more">
-                                    <h5 class="card-title">More</h5>
-
-                                    <div class="btn-group needConnected">
-                                        <button type="button" id="charge-wizard" disabled class="btn btn-warning">Charge
-                                            Control
-                                        </button>
-                                        <button type="button" id="name-wizard" disabled class="btn btn-success">Change
-                                            Name
-                                        </button>
-                                        <button type="button" id="log-wizard" disabled class="btn btn-primary">Internal Logs
-                                        </button>
-                                    </div>
-                                </div>
-                                <!-- End: Wizard More -->
+                                <details class="preview">
+                                    <summary>Preview bytes (page A0h, 0-127)</summary>
+                                    <pre id="builder-hex" class="code-block"></pre>
+                                </details>
                             </div>
                         </div>
                     </div>
+                </div>
+                <!-- End: SFP Builder -->
+            </div>
+        </section>
+        <!-- End: SFP Builder Tab -->
+
+        <!-- Start: Device Tab -->
+        <section class="tab-pane fade" id="tab-device" role="tabpanel">
+            <div class="panel">
+                <!-- Start: Device Info -->
+                <div id="device-info">
+                    <h2 class="panel-title">Wizard</h2>
+                    <dl class="kv">
+                        <dt id="page-name">Name</dt>
+                        <dd id="device-name"></dd>
+                        <dt id="page-serial">Serial</dt>
+                        <dd id="device-serial"></dd>
+                        <dt id="page-firmware">Firmware</dt>
+                        <dd id="device-firmware"></dd>
+                        <dt id="page-battery">Battery</dt>
+                        <dd id="device-battery"></dd>
+                    </dl>
+                </div>
+                <!-- End: Device Info -->
+
+                <!-- Start: Device Controls -->
+                <div class="actions needConnected">
+                    <button type="button" id="name-wizard" disabled class="btn btn-outline-secondary">Change Name
+                    </button>
+                    <button type="button" id="log-wizard" disabled class="btn btn-outline-secondary">Internal Logs
+                    </button>
+                    <button type="button" id="charge-wizard" disabled class="btn btn-outline-secondary">Charge
+                        Control
+                    </button>
+                    <button type="button" id="reboot-wizard" disabled class="btn btn-outline-secondary">Reboot
+                    </button>
+                    <button type="button" id="poweroff-wizard" disabled class="btn btn-outline-danger">Shutdown
+                    </button>
                 </div>
                 <!-- End: Device Controls -->
             </div>
-        </div>
+        </section>
+        <!-- End: Device Tab -->
 
+        <!-- Start: Advanced Tab -->
+        <section class="tab-pane fade" id="tab-advanced" role="tabpanel">
+            <div class="row g-4">
+                <div class="col-xl-6">
+                    <div class="panel h-100">
+                        <!-- Start: Wizard Log -->
+                        <div id="wizard-log">
+                            <h2 class="panel-title">Wizard Log</h2>
+                            <p class="panel-sub">Raw messages exchanged with the Wizard, newest at the bottom.</p>
+
+                            <div id="log-container"></div>
+
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" id="autoscroll" checked>
+                                <label class="form-check-label" id="autoscroll-label" for="autoscroll">Autoscroll the
+                                    Log</label>
+                            </div>
+                        </div>
+                        <!-- End: Wizard Log -->
+                    </div>
+                </div>
+
+                <div class="col-xl-6">
+                    <div class="panel h-100">
+                        <!-- Start: API Console -->
+                        <div id="wizard-api-console">
+                            <h2 class="panel-title">API Console</h2>
+                            <p class="panel-sub">Send raw requests to the Wizard. Paths are relative to
+                                <code>/api/1.0/{mac}</code> unless they start with <code>/api/</code>. Presets are
+                                read-only; POST requests can change or erase data.</p>
+
+                            <div class="mb-2">
+                                <label for="api-console-preset" class="form-label">Preset</label>
+                                <select class="form-select" id="api-console-preset">
+                                    <option selected disabled>Select a preset</option>
+                                </select>
+                            </div>
+                            <div class="input-group mb-2">
+                                <select class="form-select method-select" id="api-console-method">
+                                    <option value="GET" selected>GET</option>
+                                    <option value="POST">POST</option>
+                                </select>
+                                <input type="text" class="form-control font-monospace" id="api-console-path"
+                                       placeholder="/xsfp/favorites/start" spellcheck="false">
+                            </div>
+                            <div class="mb-3">
+                                <label for="api-console-body" class="form-label">Body (JSON)</label>
+                                <textarea class="form-control font-monospace" id="api-console-body" rows="2"
+                                          spellcheck="false">{}</textarea>
+                            </div>
+
+                            <div class="actions needConnected">
+                                <button type="button" id="api-console-send" disabled class="btn btn-primary">Send
+                                </button>
+                                <button type="button" id="api-console-download"
+                                        class="btn btn-outline-secondary ignoreConnect">Download Session
+                                    (<span id="api-console-count">0</span>)
+                                </button>
+                            </div>
+
+                            <pre id="api-console-output" class="code-block mt-3"></pre>
+                        </div>
+                        <!-- End: API Console -->
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- End: Advanced Tab -->
     </div>
-    <!-- End: Container -->
 </main>
-<br><br>
+
 <!-- START: Footer -->
-<footer class="py-3 mt-auto">
-    <ul class="nav justify-content-center border-bottom pb-3 mb-3">
-        <li class="nav-item"><a href="https://github.com/Starson323/UniFi-SFP-Wizard" rel="noopener noreferrer"
-                                target="_blank" class="nav-link px-2">GitHub</a>
-        </li>
-        <li class="nav-item"><a href="https://github.com/Starson323/UniFi-SFP-Wizard/issues" rel="noopener noreferrer"
-                                target="_blank" class="nav-link px-2">Report an Issue</a>
-        </li>
-    </ul>
-
-    <!--    <div class="justify-content-center" style="width: 100%; display: flex;">-->
-    <!--        <img src="https://visit-counter.vercel.app/counter.png?page=https%3A%2F%2Fgamer08yt.github.io%2FUniFi-Talk-Repo%2F&s=20&c=2777d5&bg=00000000&no=2&ff=electrolize&tb=&ta=+Visitors"-->
-    <!--             alt="visits">-->
-    <!--    </div>-->
-
-    <p class="text-center">Maintained by <a target="_blank" rel="noopener noreferrer"
-                                            href="https://github.com/Starson323">Starson323</a>. Based on the
-        original by <a target="_blank" rel="noopener noreferrer"
-                       href="https://github.com/Gamer08YT/UniFi-SFP-Wizard">Jan Heil</a>.</p>
-
+<footer class="footer">
+    <div class="container footer-inner">
+        <p class="mb-0">Maintained by <a target="_blank" rel="noopener noreferrer"
+                                         href="https://github.com/Starson323">Starson323</a>. Based on the original by
+            <a target="_blank" rel="noopener noreferrer" href="https://github.com/Gamer08YT/UniFi-SFP-Wizard">Jan
+                Heil</a>.</p>
+        <p class="mb-0" id="page-affiliate"></p>
+        <nav class="footer-links">
+            <a href="https://github.com/Starson323/UniFi-SFP-Wizard" target="_blank"
+               rel="noopener noreferrer">GitHub</a>
+            <a href="https://github.com/Starson323/UniFi-SFP-Wizard/issues" target="_blank"
+               rel="noopener noreferrer">Report an Issue</a>
+        </nav>
+    </div>
 </footer>
 <!-- END: Footer -->
 
@@ -447,7 +475,6 @@ The tool connects to your SFP Wizard using the Web Bluetooth API.">
         integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
         crossorigin="anonymous"></script>
 <script type="module" src="./bundle.js"></script>
-
 
 </body>
 </html>

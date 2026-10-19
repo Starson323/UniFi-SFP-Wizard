@@ -95,9 +95,9 @@ export class ProfileStore {
             });
 
             row.append($("<td class=\"text-end\">").append(
-                $("<div class=\"btn-group btn-group-sm\">").append(
-                    $("<button type=\"button\" class=\"btn btn-primary\" data-action=\"download\">").attr("data-index", index).text(i18next.t("common:store-download")),
-                    $("<button type=\"button\" class=\"btn btn-success\" data-action=\"backup\">").attr("data-index", index).text(i18next.t("common:store-backup"))
+                $("<div class=\"actions justify-content-end\">").append(
+                    $("<button type=\"button\" class=\"btn btn-sm btn-outline-primary\" data-action=\"download\">").attr("data-index", index).text(i18next.t("common:store-download")),
+                    $("<button type=\"button\" class=\"btn btn-sm btn-outline-secondary\" data-action=\"backup\">").attr("data-index", index).text(i18next.t("common:store-backup"))
                 )
             ));
 

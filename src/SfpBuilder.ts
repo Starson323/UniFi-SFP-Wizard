@@ -202,7 +202,7 @@ export class SfpBuilder {
         errors.forEach(text => messages.append($("<li class=\"text-danger\">").text(text)));
         warnings.forEach(text => messages.append($("<li class=\"text-warning\">").text(text)));
 
-        $("#builder-summary").text(`${fields.vendor || "?"} ${fields.part || "?"}, ${Eeprom.describe(data)}`);
+        $("#builder-summary").text([[fields.vendor, fields.part].filter(Boolean).join(" "), Eeprom.describe(data)].filter(Boolean).join(", "));
         $("#builder-hex").text(Eeprom.hexDump(data.slice(0, 128)));
         $("#builder-download, #builder-use").prop("disabled", this.built === null);
     }

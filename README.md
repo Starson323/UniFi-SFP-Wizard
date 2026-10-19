@@ -13,7 +13,9 @@ focused on Wizard firmware 1.1.8 and newer.
 
 **Web app:** https://starson323.github.io/UniFi-SFP-Wizard/
 
-Add `?classic` to the URL for the classic Bootstrap theme.
+The app is organised into tabs: **Module** (read, back up and write), **Profile Store**,
+**SFP Builder**, **Device** and **Advanced**. The bar at the top shows the connection status and
+the Connect button.
 
 ### Browser requirements
 
@@ -44,23 +46,25 @@ The app uses the Web Bluetooth API, which means:
    only one Bluetooth connection at a time.
 2. Open the web app in Chrome or Edge and click **Connect**.
 3. Pick the Wizard in the browser's Bluetooth list (it usually shows as "Sfp Wizard").
-4. Once connected, the Wizard's name, serial, firmware version and battery level appear under the
-   picture, and the other buttons become available. **Connect** changes to **Disconnect**.
+4. Once connected, the top bar turns green and shows the Wizard's name, firmware version and
+   battery level, and the other buttons become available. **Connect** changes to **Disconnect**.
 
 ### Device controls
+
+These are on the **Device** tab, which also shows the Wizard's name, serial, firmware and battery.
 
 | Button | What it does |
 |---|---|
 | **Shutdown** | Turns the Wizard off, after asking you to confirm. |
 | **Reboot** | Restarts the Wizard, after asking you to confirm. The connection drops, so click Connect again afterwards. |
-| **Charge Control** (under More) | Stops the Wizard charging from USB, after asking you to confirm. |
-| **Change Name** (under More) | Renames the Wizard (up to 28 characters). This is the name shown in the Bluetooth list. |
-| **Internal Logs** (under More) | Downloads the Wizard's internal syslog as `sif.log`. Useful for troubleshooting or reporting a problem. |
+| **Charge Control** | Stops the Wizard charging from USB, after asking you to confirm. |
+| **Change Name** | Renames the Wizard (up to 28 characters). This is the name shown in the Bluetooth list. |
+| **Internal Logs** | Downloads the Wizard's internal syslog as `sif.log`. Useful for troubleshooting or reporting a problem. |
 
 ### Read a module
 
 1. Insert the SFP or QSFP module into the Wizard.
-2. Click **Read** in the Module Meta card.
+2. On the **Module** tab, click **Read**.
 3. The part number, revision, vendor, serial number, type and compliance (e.g. 10G BASE-LR) are
    shown.
 
@@ -69,7 +73,7 @@ when the Wizard was switched on can't be read until it has been reinserted.
 
 ### Back up a module (Save)
 
-Click **Save** in the Module Flash card. The app reads the module's full EEPROM, downloads it as
+On the **Module** tab, click **Save**. The app reads the module's full EEPROM, downloads it as
 a `.uieeprom` file named after the vendor and part number, and stores a copy in My Backups.
 
 Always do this before writing to a module. Writing overwrites the module's vendor name, serial
@@ -81,7 +85,7 @@ module), that information is gone for good.
 1. Insert the module you want to write to.
 2. **Back it up first:** click **Save** (see above). The app will not write to a module unless a
    backup exists for that module's serial number.
-3. Choose where the new profile comes from, using the buttons at the top of Module Flash:
+3. Choose where the new profile comes from, using the buttons under **Write a profile** on the **Module** tab:
    - **Local File:** pick a `.uieeprom` file from your computer.
    - **Repository:** pick a community profile from the list.
    - **My Backups:** pick a module saved earlier in this browser, for example to restore a module
@@ -96,7 +100,7 @@ module), that information is gone for good.
 ### My Backups
 
 My Backups is the list of every module this browser has saved, including profiles copied from
-the Profile Store. Open it with the **My Backups** button in Module Flash, then type in the
+the Profile Store. Open it with the **My Backups** button under **Write a profile**, then type in the
 search box to filter by serial number, part number or vendor.
 
 Backups are stored in the browser (IndexedDB) on the device that made them. A backup saved on
@@ -110,7 +114,7 @@ module and choose **Profile Store** to see them ("SFP Profile Store").
 
 In the app:
 
-1. Click **Load Profiles** in the Profile Store card. The profiles stored on the Wizard are listed
+1. On the **Profile Store** tab, click **Load Profiles**. The profiles stored on the Wizard are listed
    with their type, part number, serial number and size.
 2. Click **Download** next to a profile to save it as a `.uieeprom` file, or **Save to My
    Backups** to copy it into My Backups, where it can be used as a write source or an SFP Builder
@@ -138,7 +142,7 @@ a Wizard connected.
    a random serial number.
 4. Check the **Result** line and any warnings. **Preview** shows the bytes.
 5. Click **Download** to save the `.uieeprom`, or **Use for Write** to make it the write source
-   in Module Flash, then follow [Write a module](#write-a-module).
+   on the Module tab (the app switches there for you), then follow [Write a module](#write-a-module).
 
 Example, a Fortinet 1G copper module: start from **Blank profile**, choose **Copper RJ45:
 1000BASE-T**, set the vendor to `FORTINET` and the part number to `FN-TRAN-GC`, generate a serial
@@ -157,7 +161,7 @@ Things to know:
 
 ### API Console (advanced)
 
-For exploring the Wizard's Bluetooth API. Normal use does not need it.
+On the **Advanced** tab. For exploring the Wizard's Bluetooth API. Normal use does not need it.
 
 1. Connect to the Wizard.
 2. Pick a **Preset** (all presets are read-only), or enter a method, path and JSON body yourself.
@@ -171,7 +175,7 @@ See [doc/FIRMWARE_1.1.8.md](doc/FIRMWARE_1.1.8.md) for what is known about the A
 
 ### Wizard Log
 
-The Wizard Log card shows the raw messages exchanged with the Wizard, newest at the bottom. Turn
+The Wizard Log on the **Advanced** tab shows the raw messages exchanged with the Wizard, newest at the bottom. Turn
 off **Autoscroll the Log** to stop it jumping to the newest entry while you read.
 
 ## Run Locally

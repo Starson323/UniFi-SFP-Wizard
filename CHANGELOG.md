@@ -5,6 +5,26 @@ All notable changes to this fork (`Starson323/UniFi-SFP-Wizard`) are documented 
 This version number tracks the **web app**, not the physical Wizard device's own firmware
 version. They are separate and only coincidentally similar-looking right now.
 
+## [1.5.0] - 2026-10-19
+
+### Changed
+
+- **Redesigned interface**: the single long page is now split into tabs (Module, Profile Store,
+  SFP Builder, Device, Advanced), with a sticky top bar showing the connection status, Wizard
+  name, firmware and battery next to the Connect button.
+- Module details and Wizard details are shown as tidy two-column lists.
+- Buttons have consistent roles: solid blue for the main action, outlined for secondary actions,
+  and red only for Shutdown.
+- The SFP Builder is laid out in numbered steps with the result beside the form, and
+  "Use for Write" now switches to the Module tab.
+- New stylesheet with a single set of colour tokens, replacing the old one and its line-height
+  workarounds. Works on phone screens: panels stack and the tabs scroll sideways.
+
+### Removed
+
+- The classic Bootstrap theme (`?classic`).
+- The product photo, which was loaded from Ubiquiti's servers.
+
 ## [1.4.0] - 2026-10-19
 
 ### Added
