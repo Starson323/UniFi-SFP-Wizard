@@ -78,7 +78,46 @@ legacy pn`, `Trying to find actual pn`) or serial (`Golden snapshot ... not foun
 | `POST /xsfp/recover/bundle`, `POST /xsfp/recover/sn` | Perform a restore. Writes to the module. |
 | `POST /xsfp/recover` | Already present in 1.1.3. |
 
+## DDM report
+
+While the Wizard's **DDM Info** screen is open, the Wizard switches the module's laser on and
+appends one sample per second to a CSV report. The report keeps growing while the screen is
+open, and a read may return more bytes than `/ddm/start` reported.
+
+### Confirmed on a device (v1.1.8, 2026-10-19)
+
+```
+GET /ddm/valid                 -> {"valid": true}
+GET /ddm/start                 -> {"chunk": 4096, "size": 2024}
+GET /ddm/data {"offset": 0, "chunk": 2048}
+-> CSV text (binary body):
+
+Property,Value
+Part Number,SFP1G-SX-85
+Serial Number,F2033048980
+Revision,
+Compliance,1000BASE-SX
+Wave length(nm),850
+Distance(m),0
+,
+,
+Units,Alarms High,Warning High,Warning Low,Alarms Low
+Temperature(℃),80.00,70.00,0.00,-10.00
+Voltage(V),3.60,3.50,3.10,3.00
+Current(mA),12.00,10.00,1.60,1.00
+Tx Power(dBm),-1.00,-3.00,-9.50,-11.51
+Rx Power(dBm),-1.00,-3.00,-17.01,-19.03
+,
+,
+Time(ms),Temperature(℃),Voltage(V),Current(mA),Tx Power(dBm),Rx Power(dBm)
+17, 4.05,3.31,0.00,-40.00,-40.00
+1036, 5.85,3.33,0.00,-40.00,-40.00
+2163, 8.09,3.30,3.05,-4.93,-40.00
+```
+
+`-40.00` dBm means no light (laser off, or no fibre connected). The firmware also has a
+four-lane header for QSFP (`1 Current(mA),1 Tx Power(dBm),1 Rx Power(dBm),2 Current(mA),...`).
+
 ## Other endpoints in 1.1.8
 
-`/ddm/start`, `/ddm/data`, `/ddm/valid` (live DDM readings), `/fw/start|data|abort`,
-`/sif/start|data|info|abort`, `/api/1.0/version`, `/api/version`.
+`/fw/start|data|abort`, `/sif/start|data|info|abort`, `/api/1.0/version`, `/api/version`.
