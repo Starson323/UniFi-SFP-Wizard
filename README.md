@@ -1,212 +1,167 @@
-# UniFi-SFP-Wizard
+# UniFi SFP Wizard Web App
 
-This Repository provides a WebGUI for the UniFi SFP-Wizard.
+A browser-based tool for the Ubiquiti UniFi SFP Wizard (UACC-SFP-Wizard). It connects to the
+Wizard over Bluetooth and lets you read, back up and write SFP/QSFP module EEPROMs, and manage
+the profiles stored on the Wizard itself.
 
-You can read, save or write the configuration of an SFP EEPROM.
-
-Feel free to contribute to this project.
+This is a fork of [Gamer08YT/UniFi-SFP-Wizard](https://github.com/Gamer08YT/UniFi-SFP-Wizard),
+focused on Wizard firmware 1.1.8 and newer.
 
 ![Dashboard](/assets/img/dashboard.png)
 
-#### Microsoft Store
+## Use it
 
-https://apps.microsoft.com/detail/9nb23j84168c?hl=de-DE&gl=DE
+**Web app:** https://starson323.github.io/UniFi-SFP-Wizard/
 
-#### MacOS Store
+Add `?classic` to the URL for the classic Bootstrap theme.
 
-MacOS MAS is currently in review, but you can download the TestFlight Version here:
+### Browser requirements
 
-https://testflight.apple.com/join/RaBhvb2u
+The app uses the Web Bluetooth API, which means:
 
-### MacOS, Windows, Debian
-
-Have a look at the Release Page: 
-https://github.com/Gamer08YT/UniFi-SFP-Wizard/releases/
-
-## Live Demo
-
-#### Glass Design
-
-https://gamer08yt.github.io/UniFi-SFP-Wizard/
-
-#### Classic BS5
-
-https://gamer08yt.github.io/UniFi-SFP-Wizard/?classic
-
-#### Forum Demo
-
-https://ubiquiti-networks-forum.de/sfp-wizard/
+- **Supported:** Chrome, Edge and other Chromium browsers on Windows, macOS, Linux and Android.
+- **Not supported:** Firefox, and Safari on macOS and iOS.
+- The page must be opened over **HTTPS** or on **localhost**. Browsers disable Bluetooth on plain
+  `http://` addresses (for example `http://192.168.1.10:8080`), and the app tells you if that is
+  the problem.
 
 ## Features
 
-- Device Functions
-    - Reboot
-    - Shutdown
-    - Rename
-    - Battery Control
-    - Device Info
-    - Download Syslog
-- SFP Functions
-    - Read EEPROM
-    - Write EEPROM [X] — **requires an existing local backup of the module, see below**
-        - Via File Upload
-        - Via Repo
-        - Via local Backup Library
-    - Save EEPROM (downloads a `.uieeprom` file **and** stores a copy in the local Backup Library)
+### Device
 
-Currently, I implemented only the Dump Functions, DDM would be nice too, but you manually have to activate it on the
-Wizard, so I think it's not interesting at the moment.
+- Device info: name, serial, firmware version, battery level
+- Rename, reboot, shut down
+- Charge control
+- Download the Wizard's internal syslog
+
+### Modules
+
+- Read module details (part number, vendor, serial, type, compliance)
+- **Save:** download the module's EEPROM as a `.uieeprom` file and keep a copy in My Backups
+- **Write:** send an EEPROM to the Wizard from one of three sources:
+  - **Local File:** a `.uieeprom` file from your computer
+  - **Repository:** community profiles from the [`repository`](repository) folder
+  - **My Backups:** any module previously saved in this browser
+- Writing requires a backup of the inserted module first (see below)
+
+### Profile Store (firmware 1.1.8+)
+
+Firmware 1.1.8 lets the Wizard store module profiles on the device ("SFP Profile Store" on the
+Wizard's screen). The app can:
+
+- List the profiles stored on the Wizard
+- Download any stored profile as a `.uieeprom` file
+- Copy a stored profile into My Backups
+
+Uploading and deleting stored profiles from the app is in progress.
+
+### API Console (advanced)
+
+A raw request console for exploring the Wizard's Bluetooth API. It includes read-only presets
+for the newer firmware endpoints, asks for confirmation before any POST request, and can
+download a session log of every request and response. See
+[doc/FIRMWARE_1.1.8.md](doc/FIRMWARE_1.1.8.md) for what is known about the 1.1.8 API.
 
 ## Module Backups (Required Before Writing)
 
-**This fork will not let you Write a new EEPROM to a module until a local backup of that module's
-current identity already exists.**
+**The app will not let you write a new EEPROM to a module until a backup of that module's
+current contents exists.**
 
-### Why
+Writing overwrites the module's vendor name, serial number and part number. If you have no copy
+of the original and it is not printed on the module, that information is gone for good.
 
-Writing overwrites the module's vendor name, serial number, and part number with whatever is in the
-EEPROM you're flashing. If you don't already have a copy of what was on the module *beforehand*, and
-the original identity isn't printed anywhere on the module's case, that information is gone
-permanently — there is no way to recover it afterwards, through this tool or through the Wizard
-device itself.
+How it works:
 
-### How it works
+1. Click **Read** to fetch the inserted module's identity.
+2. Click **Save**. This downloads a `.uieeprom` file and stores a copy in My Backups.
+3. **Write** only goes ahead if a backup exists for that exact serial number. Clicking Write
+   re-reads the inserted module first, so the check always applies to the module in the slot.
 
-1. Click **Read** to fetch the module's current identity (vendor / serial / part number).
-2. Click **Save**. This downloads a `.uieeprom` file like before, and also stores a copy in this
-   app's local Backup Library (see below).
-3. **Write** is only enabled once a backup exists for that exact serial number. Clicking Write
-   automatically re-reads whatever module is currently connected and checks for a match — if none
-   exists, the write is blocked with an on-screen error telling you to Save first.
+### My Backups
 
-### The Backup Library ("My Backups")
+My Backups is a searchable list of every module this browser has saved, stored in the browser's
+IndexedDB. Search by serial number, part number or vendor.
 
-Next to the Local File and Repository options, there's a third source: a searchable list of every
-module this browser has ever Saved. It's stored using IndexedDB (the browser's own local database),
-which works the same way on desktop and mobile — no OS folder permissions needed. Search by serial
-number, part number, or vendor to find and restore a module back to its original dump.
+**Limitation:** backups stay in the browser and device that made them. A backup saved on your
+phone is not visible on your laptop. Download the `.uieeprom` files (or use the Profile Store)
+if you need copies elsewhere.
 
-**Limitation:** the Backup Library is local to the specific browser/device you're using. Saving a
-module from your phone won't make that backup visible (or satisfy the write requirement) on your
-laptop, and vice versa — each browser keeps its own separate library.
+## Run Locally
 
-## Contributing
+Requires [Node.js](https://nodejs.org/) 20 or newer.
 
-Feel free to contribute, every help is appreciated!
+```
+npm ci
+npm run serve
+```
 
-### Profiles
+Then open http://localhost:8080 in Chrome or Edge.
 
-If you want to contribute an EEPROM profile, please create a pull request.
+| Command | Purpose |
+|---|---|
+| `npm run serve` | Development server with live reload on port 8080 |
+| `npm run build` | Production build into `dist/` |
+| `npm start` | Run the Electron desktop app |
+| `npm run make` | Build desktop installers (MSIX, DEB, DMG) with Electron Forge |
 
-Please upload your EEPROM Dump into the <code>repository</code> Folder and add an entry to the <code>dumps.json</code>
-File.
+There are no prebuilt desktop releases for this fork yet. The GitHub Pages site is deployed
+automatically from `master`.
 
 ## Known Issues
 
-### Modules are not flashed via WebGUI
+### Writing needs confirmation on the Wizard
 
-That's correct, the current API does not allow flashing of Modules via WebGUI directly.
+The Wizard's API does not flash a module directly. **Write** sends the EEPROM into the Wizard's
+snapshot buffer, and you then confirm the flash on the Wizard itself.
 
-It only allows transmitting the EEPROM Dump into the Wizards Snapshot Buffer.
+### Module can't be read after power-on
 
-So if you press the "Write" Button, you need to confirm the flash process on the Wizard.
+If the Wizard is powered on with a module already inserted, the module can't be read. Remove it
+and plug it in again.
 
-I created
-a [Thread Message](https://community.ui.com/releases/4e7ed4c2-3060-4ea8-8416-f6d502ac2dcc?replyId=3b9a0d99-b0fd-4aaf-b007-838a572a0b38)
-in the Ubiquiti Community, but I think they won't add a function for that so fast.
+### Random reboots
 
-### Module can't be read
+The Wizard occasionally reboots on its own. This also happens with the official app, so it
+appears to be a firmware issue. If the Wizard stops responding, the app times out after 10
+seconds instead of hanging.
 
-If you power on the Wizard with a Module in its SFP Slot, the Module can't be read.
+### Some modules can't be flashed
 
-Please remove the Module from the Slot and plug it in again.
+Firmware newer than 1.0.5 only flashes modules whose part number is in the Wizard's built-in
+password database, which is used to unlock write-protected modules. That database only contains
+**Ubiquiti-branded** modules and cables, so it does not help with third-party modules. Generic
+donor modules are usually not write-protected in the first place.
+[sfpw-tool's downgrade notes](https://github.com/vitaminmoo/sfpw-tool/blob/main/doc/HOW_TO_DOWNGRADE_AND_WHY_NOT_TO.md)
+explain why older firmware is not a safe workaround.
 
-Now you can read the Module.
+## Contributing
 
-### Random Reboots
+Issues and pull requests are welcome.
 
-I don't know why, but sometimes the Wizard reboots.
+### EEPROM profiles
 
-The Problem is not my WebGUI, because the Wizard sometimes reboots also with the IOS App.
-
-Currently, I am unable to access the JTAG Console, so I can't debug the Problem (And yes, the ESP32 uses Secure Boot).
-
-### Bluetooth Limitations
-
-Due to limitations of the Web Bluetooth API, I can't read the MAC from the Device on first connecting.
-
-Normally the Service 1 Channel should contain the MAC on first connecting, but it doesn't.
-
-I use a dirty workaround to get the MAC, because in the API V1 the MAC is available in any Basic Response.
-
-So I use the <code>getVer</code> Command to get the MAC after a successful connection.
-
-### Can't flash some Modules
-
-In the newer Versions of the SFP-Wizard Firmware, the Wizard checks if the Module is in its Database.
-
-If the Part Number is not in the Database, the Wizard can't flash the Module.
-
-Version 1.0.5 allowed flashing of Modules without a Database, but it has no check if the Module Password was correct, so
-you could destroy your Module.
-
-Please have a look at https://github.com/vitaminmoo/sfpw-tool/blob/main/doc/HOW_TO_DOWNGRADE_AND_WHY_NOT_TO.md which 
-explains why some modules are not working.
-
-#### About the firmware's password database (and why we didn't build around it)
-
-The "Database" mentioned above is a password table baked directly into the Wizard's own ESP32
-firmware, used to unlock write-protected EEPROM pages on certain modules before flashing them. It
-can be extracted from an official firmware image using
-[`sfpw-tool`](https://github.com/vitaminmoo/sfpw-tool)'s `fw passdb` command (official firmware
-images are downloadable straight from Ubiquiti's update API, filtered to
-`product=SFP-Wizard&platform=ESP32&channel=release`).
-
-We pulled and parsed this table from a real v1.1.1 firmware image. Every single entry in it is a
-**Ubiquiti-branded** module or cable (`AOC-SFP10-*`, `AOC-QSFP28-*`, `UACC-*`, `DAC-SFP*`,
-`OM-SFP*`, `Uplink-SFP28-*`, `UC-D-QSFP28-*`, etc.) — none of the third-party parts this project
-actually deals with (Cisco, FS.com, Finisar, Ruckus, IBM/Blade Network) appear in it anywhere.
-
-That tells us what the database is actually for: it's Ubiquiti's own unlock codes for their own
-write-protected modules, not something tied to whatever identity you're writing. This project's
-typical use case is the opposite direction — taking a cheap generic module (which, by virtue of
-being a viable donor, essentially never has write-protection enabled in the first place) and
-flashing it with an OEM part number's `.uieeprom` profile so a switch stops rejecting it as an
-unrecognized transceiver. Since the *target identity* being written was never how this database is
-checked, and generic donor modules almost never hit its lock check anyway, there's nothing here for
-this fork to build a compatibility warning around. If you're specifically trying to reflash a
-locked, non-generic module (a genuine Cisco/FS/etc. part with write-protection actually enabled),
-this database won't help you and the module needs the real vendor's own unlock code, which isn't
-published anywhere in Ubiquiti's firmware.
+To contribute a profile, add the `.uieeprom` file to the [`repository`](repository) folder, add an
+entry to [`repository/dumps.json`](repository/dumps.json), and open a pull request.
 
 ## Credits
 
-This project is oriented at the https://github.com/vitaminmoo/sfpw-tool Repository, thank you for your work.
+- [Jan Heil (Gamer08YT)](https://github.com/Gamer08YT/UniFi-SFP-Wizard), the original author of
+  this tool
+- [posi211](https://github.com/posi211/UniFi-SFP-Wizard), the Backup Library and backup-before-write
+  safeguard
+- [vitaminmoo/sfpw-tool](https://github.com/vitaminmoo/sfpw-tool), whose reverse engineering of
+  the Wizard's Bluetooth protocol this project builds on
+- Profile contributors listed in [`repository/dumps.json`](repository/dumps.json)
 
-### Libraries and Software
-
-For detailed information about the used libraries, please have a look at the <code>package.json</code> File.
-
-- TypeScript
-- Bootstrap 5
-- Web Bluetooth API
-- JQuery
-- Electron
-- Electron Forge
-- Webpack
-- i18next
-- Pako
-- Notiflix
-- js-untar
+Built with TypeScript, Bootstrap 5, Web Bluetooth, jQuery, Electron, Electron Forge, Webpack,
+i18next, Pako, Notiflix and js-untar. See [`package.json`](package.json) for versions.
 
 ## Disclaimer
 
-#### I accept no liability for damage, data loss or other problems.
+**Use at your own risk.** Writing EEPROMs can make modules unusable. No liability is accepted for
+damage, data loss or other problems.
 
-#### Participation is at your own risk!
+This project is not affiliated with Ubiquiti or UniFi.
 
-### As with all of my repositories, I would like to point out that I am in no way affiliated with Ubiquiti or UniFi.
-
-### The EEPROM dumps published here are for testing purposes only. If a legal claim arises, please contact me, and I will gladly take it offline.
-
-### For legal claims about used product images, please contact me in the Ubiquiti Community ([JaXnPriVate](https://community.ui.com/user/JaXnPublic/a521c964-0aba-4ad4-89aa-b42b5066e8a5)).
+The EEPROM dumps in this repository are provided for testing purposes. For legal concerns about
+the dumps or product images, please open an issue and the content will be removed.
