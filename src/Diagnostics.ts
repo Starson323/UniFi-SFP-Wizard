@@ -64,7 +64,8 @@ export class Diagnostics {
         $("#ddm-download").on("click", () => this.download());
 
         // Pause polling when the Diagnostics tab is left, so it does not compete with other requests.
-        $("[data-bs-target=\"#tab-diagnostics\"]").on("hidden.bs.tab", () => this.stop());
+        // A native listener: jQuery would read "hidden.bs.tab" as event "hidden" in namespace "bs.tab".
+        document.querySelector("[data-bs-target=\"#tab-diagnostics\"]")?.addEventListener("hidden.bs.tab", () => this.stop());
     }
 
     /**
